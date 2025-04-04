@@ -1,24 +1,37 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from 'src/company/entities/company.entity';
+import { plainToInstance } from 'class-transformer';
+import { ServiceService } from 'src/service/service.service';
 
 @Injectable()
 export class PersonnelService {
   constructor(
     @InjectRepository(Personnel)
     private personnelRepository: Repository<Personnel>,
+    private serviceService: ServiceService,
   ) {}
 
-  create(company: Company, createPersonnelDto: CreatePersonnelDto) {
+  async create(company: Company, createPersonnelDto: CreatePersonnelDto) {
+    // Check if added services belong to company
+    await this.serviceService.validate(company, createPersonnelDto.services);
+
+    // If okay, create new personnel
     const newPersonnel = this.personnelRepository.create({
       company,
       ...createPersonnelDto,
     });
-    return this.personnelRepository.save(newPersonnel);
+
+    const savedPersonnel = await this.personnelRepository.save(newPersonnel);
+    return plainToInstance(Personnel, savedPersonnel);
   }
 
   findAll(company: Company) {
@@ -26,6 +39,25 @@ export class PersonnelService {
       where: { company },
       relations: { services: true },
     });
+  }
+
+  /**
+   * Errors if any of the ids belong to other company than provided one
+   */
+  async validate(company: Company, personnel: Personnel[] | undefined) {
+    const ids = personnel?.map((p) => p.id);
+    if (!ids || ids.length === 0) return;
+
+    const personnelWithCompany = await this.personnelRepository.find({
+      where: { id: In(ids) },
+      relations: { company: true },
+    });
+
+    if (personnelWithCompany.some((p) => p.company.id !== company.id)) {
+      throw new UnauthorizedException(
+        'Some personnel do not belong to the company',
+      );
+    }
   }
 
   findOne(id: number, company: Company) {
@@ -37,7 +69,7 @@ export class PersonnelService {
     company: Company,
     updatePersonnelDto: UpdatePersonnelDto,
   ) {
-    let personnel = await this.personnelRepository.findOne({
+    const personnel = await this.personnelRepository.findOne({
       where: { id, company },
     });
 
@@ -45,9 +77,12 @@ export class PersonnelService {
       throw new NotFoundException();
     }
 
-    personnel = { ...personnel, ...updatePersonnelDto };
+    // Check that to be added services are valid = belong to company
+    await this.serviceService.validate(company, personnel.services);
 
-    return this.personnelRepository.save(personnel);
+    const updatedPersonnel = { ...personnel, ...updatePersonnelDto };
+
+    return this.personnelRepository.save(updatedPersonnel);
   }
 
   async remove(id: number, company: Company) {

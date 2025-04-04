@@ -1,8 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { PersonnelService } from './personnel.service';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
-import { AuthenticatedRequest, AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
 
@@ -12,7 +21,10 @@ export class PersonnelController {
   constructor(private readonly personnelService: PersonnelService) {}
 
   @Post()
-  create(@UseCompany() company: Company, @Body() createPersonnelDto: CreatePersonnelDto) {
+  create(
+    @UseCompany() company: Company,
+    @Body() createPersonnelDto: CreatePersonnelDto,
+  ) {
     return this.personnelService.create(company, createPersonnelDto);
   }
 
@@ -27,7 +39,11 @@ export class PersonnelController {
   }
 
   @Patch(':id')
-  update(@UseCompany() company: Company, @Param('id') id: string, @Body() updatePersonnelDto: UpdatePersonnelDto) {
+  update(
+    @UseCompany() company: Company,
+    @Param('id') id: string,
+    @Body() updatePersonnelDto: UpdatePersonnelDto,
+  ) {
     return this.personnelService.update(+id, company, updatePersonnelDto);
   }
 

@@ -28,7 +28,6 @@ export class ServiceController {
     return this.serviceService.create(company, createServiceDto);
   }
 
-  // @UseGuards(AuthGuard)
   @Get()
   findAll(@UseCompany() company: Company) {
     return this.serviceService.findAll(company);
@@ -39,7 +38,6 @@ export class ServiceController {
     return this.serviceService.findOne(+id, company);
   }
 
-  // @UseGuards(AuthGuard)
   @Patch(':id')
   update(
     @UseCompany() company: Company,

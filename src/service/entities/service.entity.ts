@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Company } from 'src/company/entities/company.entity';
 import { Personnel } from 'src/personnel/entities/personnel.entity';
 import {
@@ -17,6 +18,7 @@ export class Service {
   description: string;
 
   @ManyToOne(() => Company)
+  @Exclude()
   company: Company;
 
   @ManyToMany(() => Personnel, (personnel => personnel.services))

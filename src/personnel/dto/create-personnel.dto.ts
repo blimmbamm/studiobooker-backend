@@ -1,13 +1,18 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsOptional, IsString } from 'class-validator';
-import { Service } from 'src/service/entities/service.entity';
+import { IsArray, IsEmail, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { ServiceDto } from 'src/service/dto/service.dto';
 
 export class CreatePersonnelDto {
   @IsString()
   name: string;
 
   @IsOptional()
+  @IsEmail()
+  email: string;
+
+  @IsOptional()
   @IsArray()
-  @Type(() => Service)
-  services?: Service[];
+  @ValidateNested({each: true})
+  @Type(() => ServiceDto)
+  services?: ServiceDto[];
 }

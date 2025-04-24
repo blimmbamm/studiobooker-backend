@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -34,21 +35,56 @@ export class ServiceController {
   }
 
   @Get(':id')
-  findOne(@UseCompany() company: Company, @Param('id') id: string) {
+  findOne(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+  ) {
     return this.serviceService.findOne(+id, company);
   }
 
   @Patch(':id')
   update(
     @UseCompany() company: Company,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
     return this.serviceService.update(+id, company, updateServiceDto);
   }
 
   @Delete(':id')
-  remove(@UseCompany() company: Company, @Param('id') id: string) {
+  remove(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+  ) {
     return this.serviceService.remove(+id, company);
+  }
+
+  @Post(':id/personnel/:personnelId')
+  addPersonnelToService(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+    @Param('personnelId', ParseIntPipe) personnelId: string,
+  ) {
+    // Find service with id
+    // check if personnelId is already in array of personnel
+    // Insert if not
+    return this.serviceService.addPersonnelToService(
+      company,
+      +id,
+      +personnelId,
+    );
+  }
+
+  @Delete(':id/personnel/:personnelId')
+  removePersonnelFromService(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+    @Param('personnelId', ParseIntPipe) personnelId: string,
+  ) {
+    return this.serviceService.removePersonnelFromService(
+      company,
+      +id,
+      +personnelId,
+    );
   }
 }

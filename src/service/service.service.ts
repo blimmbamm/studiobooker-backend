@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -9,16 +11,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
 import { In, Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
-import { Personnel } from 'src/personnel/entities/personnel.entity';
 import { plainToInstance } from 'class-transformer';
 import { PersonnelService } from 'src/personnel/personnel.service';
 
 @Injectable()
 export class ServiceService {
   constructor(
-    // @InjectRepository(Personnel)
-    // private personnelRepository: Repository<Personnel>,
     @InjectRepository(Service) private serviceRepository: Repository<Service>,
+
+    @Inject(forwardRef(() => PersonnelService))
     private personnelService: PersonnelService,
   ) {}
 
@@ -57,7 +58,12 @@ export class ServiceService {
       relations: { company: true },
     });
 
-    if (servicesWithCompany.some((p) => p.company.id !== company.id)) {
+    // Check if all provided personnel actually exists
+    if (servicesWithCompany.length !== ids.length) {
+      throw new NotFoundException('Some service was not found'); // or BadRequest
+    }
+
+    if (servicesWithCompany.some((p) => p.company?.id !== company.id)) {
       throw new UnauthorizedException(
         'Some services do not belong to the company',
       );
@@ -83,11 +89,69 @@ export class ServiceService {
       throw new NotFoundException();
     }
 
+    // Check that to be added personnel are valid = exist & belong to company
     await this.personnelService.validate(company, updateServiceDto.personnel);
 
     const updatedService = { ...service, ...updateServiceDto };
 
     return this.serviceRepository.save(updatedService);
+  }
+
+  async addPersonnelToService(
+    company: Company,
+    id: number,
+    personnelId: number,
+  ) {
+    const service = await this.serviceRepository.findOne({
+      where: { id, company },
+      relations: { personnel: true },
+    });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    console.log('Adding personnel to service')
+
+    // Since personnel relation gets loaded, it should be defined in the following,
+    // but unsure if using ! instead of ? would
+    if (!service.personnel!.map((p) => p.id).includes(personnelId)) {
+      const personnel = await this.personnelService.findOne(
+        personnelId,
+        company,
+      );
+
+      if (!personnel) {
+        throw new NotFoundException('Personnel not found');
+      }
+
+      service.personnel?.push(personnel);
+      return this.serviceRepository.save(service);
+    } else {
+      return service;
+    }
+  }
+
+  async removePersonnelFromService(
+    company: Company,
+    id: number,
+    personnelId: number,
+  ) {
+    const service = await this.serviceRepository.findOne({
+      where: { id, company },
+      relations: { personnel: true },
+    });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    if (service.personnel) {
+      service.personnel = service.personnel.filter((p) => p.id !== personnelId);
+    }
+    console.log('Removing personnel from service')
+
+    return this.serviceRepository.save(service);
   }
 
   async remove(id: number, company: Company) {

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { CompanyInfo } from 'src/company-info/entities/company-info.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Company {
@@ -22,4 +29,8 @@ export class Company {
 
   @Column()
   verified: boolean;
+
+  @OneToOne(() => CompanyInfo, (companyInfo) => companyInfo.company)
+  @JoinColumn()
+  companyInfo: CompanyInfo;
 }

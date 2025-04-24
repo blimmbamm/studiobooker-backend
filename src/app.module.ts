@@ -10,12 +10,16 @@ import { PersonnelModule } from './personnel/personnel.module';
 import { Personnel } from './personnel/entities/personnel.entity';
 import { ServiceModule } from './service/service.module';
 import { Service } from './service/entities/service.entity';
+import { CompanyInfoModule } from './company-info/company-info.module';
+import { CompanyInfo } from './company-info/entities/company-info.entity';
+import { WorkingTimeModule } from './working-time/working-time.module';
+import { WorkingTime } from './working-time/entities/working-time.entity';
 
 const typeorm_config: SqliteConnectionOptions = {
   database: 'db',
   type: 'sqlite',
   synchronize: true,
-  entities: [Company, Personnel, Service]
+  entities: [Company, Personnel, Service, CompanyInfo, WorkingTime]
 };
 
 @Module({
@@ -25,6 +29,8 @@ const typeorm_config: SqliteConnectionOptions = {
     CompanyModule,
     PersonnelModule,
     ServiceModule,
+    CompanyInfoModule,
+    WorkingTimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

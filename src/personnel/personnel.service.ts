@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -11,15 +13,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { ServiceService } from 'src/service/service.service';
+import { WorkingTimeService } from 'src/working-time/working-time.service';
+import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
 
 @Injectable()
 export class PersonnelService {
   constructor(
     @InjectRepository(Personnel)
     private personnelRepository: Repository<Personnel>,
-    private serviceService: ServiceService,
-  ) {}
 
+    @Inject(forwardRef(() => ServiceService))
+    private serviceService: ServiceService,
+
+    private workingTimeService: WorkingTimeService,
+  ) {}
   async create(company: Company, createPersonnelDto: CreatePersonnelDto) {
     // Check if added services belong to company
     await this.serviceService.validate(company, createPersonnelDto.services);
@@ -42,7 +49,7 @@ export class PersonnelService {
   }
 
   /**
-   * Errors if any of the ids belong to other company than provided one
+   * Validates that provided personnel exists and belongs to company.
    */
   async validate(company: Company, personnel: Personnel[] | undefined) {
     const ids = personnel?.map((p) => p.id);
@@ -53,7 +60,13 @@ export class PersonnelService {
       relations: { company: true },
     });
 
-    if (personnelWithCompany.some((p) => p.company.id !== company.id)) {
+    // Check if all provided personnel actually exists
+    if (personnelWithCompany.length !== ids.length) {
+      throw new NotFoundException('Some personnel was not found'); // or BadRequest
+    }
+
+    // Check if companies are correct for all personnel
+    if (personnelWithCompany.some((p) => p.company?.id !== company.id)) {
       throw new UnauthorizedException(
         'Some personnel do not belong to the company',
       );
@@ -61,7 +74,10 @@ export class PersonnelService {
   }
 
   findOne(id: number, company: Company) {
-    return this.personnelRepository.findOne({ where: { id, company } });
+    return this.personnelRepository.findOne({
+      where: { id, company },
+      relations: { services: true, workingTimes: true },
+    });
   }
 
   async update(
@@ -69,6 +85,7 @@ export class PersonnelService {
     company: Company,
     updatePersonnelDto: UpdatePersonnelDto,
   ) {
+    console.log(updatePersonnelDto);
     const personnel = await this.personnelRepository.findOne({
       where: { id, company },
     });
@@ -77,7 +94,7 @@ export class PersonnelService {
       throw new NotFoundException();
     }
 
-    // Check that to be added services are valid = belong to company
+    // Check that to be added services are valid = exist & belong to company
     await this.serviceService.validate(company, personnel.services);
 
     const updatedPersonnel = { ...personnel, ...updatePersonnelDto };
@@ -95,5 +112,35 @@ export class PersonnelService {
     } else {
       throw new NotFoundException();
     }
+  }
+
+  async addWorkingTime(id: number, company: Company, weekday: string) {
+    const personnel = await this.personnelRepository.findOne({
+      where: { id, company },
+    });
+
+    if (!personnel) {
+      throw new NotFoundException();
+    }
+
+    return this.workingTimeService.create(company, personnel, {
+      weekday,
+      start: '09:00',
+      end: '17:00',
+    });
+  }
+
+  async updateWorkingTime(
+    company: Company,
+    id: number,
+    weekday: string,
+    dto: UpdateWorkingTimeForPersonnelDto,
+  ) {
+    return this.workingTimeService.updateByPersonnelAndWeekday(
+      company,
+      id,
+      weekday,
+      dto,
+    );
   }
 }

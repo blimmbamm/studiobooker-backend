@@ -1,7 +1,6 @@
-import { Matches, Validate } from "class-validator";
+import { Matches } from "class-validator";
 import { IsBeforeEnd } from "../validators/is-start-before-end.validator";
 
-// @Validate(StartBeforeEndConstraint)
 export class CreateWorkingTimeDto {
   weekday: string;
   

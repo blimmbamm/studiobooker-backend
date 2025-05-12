@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -27,57 +28,69 @@ export class PersonnelService {
 
     private workingTimeService: WorkingTimeService,
   ) {}
-  async create(company: Company, createPersonnelDto: CreatePersonnelDto) {
-    // Check if added services belong to company
-    await this.serviceService.validate(company, createPersonnelDto.services);
 
-    // If okay, create new personnel
+  async create(company: Company, createPersonnelDto: CreatePersonnelDto) {
     const newPersonnel = this.personnelRepository.create({
       company,
       ...createPersonnelDto,
     });
 
-    const savedPersonnel = await this.personnelRepository.save(newPersonnel);
-    return plainToInstance(Personnel, savedPersonnel);
+    try {
+      const savedPersonnel = await this.personnelRepository.save(newPersonnel);
+      return plainToInstance(Personnel, savedPersonnel);
+    } catch (error) {
+      throw new ConflictException();
+    }
   }
 
   findAll(company: Company) {
     return this.personnelRepository.find({
       where: { company },
-      relations: { services: true },
+      // relations: { services: true },
     });
   }
 
-  /**
-   * Validates that provided personnel exists and belongs to company.
-   */
-  async validate(company: Company, personnel: Personnel[] | undefined) {
-    const ids = personnel?.map((p) => p.id);
-    if (!ids || ids.length === 0) return;
-
-    const personnelWithCompany = await this.personnelRepository.find({
-      where: { id: In(ids) },
-      relations: { company: true },
-    });
-
-    // Check if all provided personnel actually exists
-    if (personnelWithCompany.length !== ids.length) {
-      throw new NotFoundException('Some personnel was not found'); // or BadRequest
-    }
-
-    // Check if companies are correct for all personnel
-    if (personnelWithCompany.some((p) => p.company?.id !== company.id)) {
-      throw new UnauthorizedException(
-        'Some personnel do not belong to the company',
-      );
-    }
-  }
-
-  findOne(id: number, company: Company) {
-    return this.personnelRepository.findOne({
+  async findOne(id: number, company: Company) {
+    const personnel = await this.personnelRepository.findOne({
       where: { id, company },
-      relations: { services: true, workingTimes: true },
+      relations: { services: { serviceCategory: true }, workingTimes: true },
     });
+
+    if (personnel) {
+      // Yes, ! isn't nice, but safe here because relations are loaded explicitly:
+
+      // Get unique list of service categories:
+      const categories = personnel
+        .services!.map((s) => s.serviceCategory!)
+        .filter(
+          (value, index, array) =>
+            array.map((sc) => sc.id).indexOf(value.id) === index,
+        );
+
+      // For each category, find respective services and add them as new property
+      // in category
+      for (let category of categories) {
+        const services = personnel
+          .services!.filter((s) => s.serviceCategory!.id === category.id)
+          .map((s) => {
+            // Keep only atomic service fields (= omit serviceCategory)
+            const { serviceCategory, ...atomicServiceProps } = s;
+            return atomicServiceProps;
+          });
+
+        category.services = services;
+      }
+
+      // Keep all personnel fields excluding services
+      const { services, ...personnelProps } = personnel || {};
+
+      return {
+        ...personnelProps,
+        categories,
+      };
+    } else {
+      return personnel;
+    }
   }
 
   async update(
@@ -85,7 +98,6 @@ export class PersonnelService {
     company: Company,
     updatePersonnelDto: UpdatePersonnelDto,
   ) {
-    console.log(updatePersonnelDto);
     const personnel = await this.personnelRepository.findOne({
       where: { id, company },
     });
@@ -93,9 +105,6 @@ export class PersonnelService {
     if (!personnel) {
       throw new NotFoundException();
     }
-
-    // Check that to be added services are valid = exist & belong to company
-    await this.serviceService.validate(company, personnel.services);
 
     const updatedPersonnel = { ...personnel, ...updatePersonnelDto };
 

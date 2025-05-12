@@ -94,6 +94,4 @@ export class AuthService {
       throw new BadRequestException('Wrong credentials');
     }
   }
-
-  signOut() {}
 }

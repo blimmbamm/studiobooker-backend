@@ -17,11 +17,17 @@ export class Personnel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   email: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true, type: 'text' })
+  notes: string;
 
   @ManyToOne(() => Company)
   @Exclude()

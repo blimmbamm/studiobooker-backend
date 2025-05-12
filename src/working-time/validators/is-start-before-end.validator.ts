@@ -25,7 +25,6 @@ export function IsBeforeEnd(
       options: validationOptions,
       validator: {
         validate(value: string, args: ValidationArguments) {
-          console.log(value, args)
           const [relatedPropertyName] = args.constraints as string[];
           const relatedValue: string = (args.object as any)[relatedPropertyName];
 

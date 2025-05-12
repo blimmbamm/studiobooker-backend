@@ -1,18 +1,30 @@
-import { Type } from 'class-transformer';
-import { IsArray, IsEmail, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { ServiceDto } from 'src/service/dto/service.dto';
+import { Transform } from 'class-transformer';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreatePersonnelDto {
   @IsString()
+  @IsNotEmpty()
   name: string;
 
+  @Transform(({ value }) => (value === '' ? null : value))
+  @ValidateIf((o) => o.email !== null)
   @IsOptional()
   @IsEmail()
   email: string;
 
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsOptional()
-  @IsArray()
-  @ValidateNested({each: true})
-  @Type(() => ServiceDto)
-  services?: ServiceDto[];
+  @IsString()
+  phone: string;
+
+  @Transform(({ value }) => (value === '' ? null : value))
+  @IsOptional()
+  @IsString()
+  notes: string;
 }

@@ -39,7 +39,7 @@ export class ServiceController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.serviceService.findOne(+id, company);
+    return this.serviceService.findOneStructured(+id, company);
   }
 
   @Patch(':id')

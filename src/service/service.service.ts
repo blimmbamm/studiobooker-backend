@@ -3,16 +3,16 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { PersonnelService } from 'src/personnel/personnel.service';
+import { ServiceCategoryService } from 'src/service-category/service-category.service';
 
 @Injectable()
 export class ServiceService {
@@ -21,58 +21,50 @@ export class ServiceService {
 
     @Inject(forwardRef(() => PersonnelService))
     private personnelService: PersonnelService,
+
+    private serviceCategoryService: ServiceCategoryService,
   ) {}
 
   async create(company: Company, createServiceDto: CreateServiceDto) {
-    // First, check list of personnel to be part of the requesting company
-    await this.personnelService.validate(company, createServiceDto.personnel);
+    const { serviceCategoryId, ...dto } = createServiceDto;
 
-    // If ok, create service
+    const serviceCategory = await this.serviceCategoryService.findOne(
+      company,
+      createServiceDto.serviceCategoryId,
+    );
+
     const newService = this.serviceRepository.create({
       company,
-      ...createServiceDto,
+      serviceCategory,
+      ...dto,
     });
 
-    const savedService = this.serviceRepository.save(newService);
+    const savedService = await this.serviceRepository.save(newService);
+
     return plainToInstance(Service, savedService);
   }
 
   findAll(company: Company) {
     return this.serviceRepository.find({
       where: { company },
+      relations: { serviceCategory: true },
+      // relations: {personnel: {services: true}}
       // Relations depends on what is needed in the client in the end...
       // But maybe this should be configurable via queryParams
       // relations: { personnel: true },
     });
   }
 
-  /**
-   * Errors if any of the ids belong to other company than provided one
-   */
-  async validate(company: Company, services: Service[] | undefined) {
-    const ids = services?.map((p) => p.id);
-    if (!ids || ids.length === 0) return;
-
-    const servicesWithCompany = await this.serviceRepository.find({
-      where: { id: In(ids) },
-      relations: { company: true },
-    });
-
-    // Check if all provided personnel actually exists
-    if (servicesWithCompany.length !== ids.length) {
-      throw new NotFoundException('Some service was not found'); // or BadRequest
-    }
-
-    if (servicesWithCompany.some((p) => p.company?.id !== company.id)) {
-      throw new UnauthorizedException(
-        'Some services do not belong to the company',
-      );
-    }
-  }
-
   findOne(id: number, company: Company) {
     return this.serviceRepository.findOne({
       where: { id, company },
+    });
+  }
+
+  findOneStructured(id: number, company: Company) {
+    return this.serviceRepository.findOne({
+      where: { id, company },
+      relations: { personnel: true },
     });
   }
 
@@ -88,9 +80,6 @@ export class ServiceService {
     if (!service) {
       throw new NotFoundException();
     }
-
-    // Check that to be added personnel are valid = exist & belong to company
-    await this.personnelService.validate(company, updateServiceDto.personnel);
 
     const updatedService = { ...service, ...updateServiceDto };
 
@@ -111,11 +100,12 @@ export class ServiceService {
       throw new NotFoundException('Service not found');
     }
 
-    console.log('Adding personnel to service')
-
     // Since personnel relation gets loaded, it should be defined in the following,
     // but unsure if using ! instead of ? would
-    if (!service.personnel!.map((p) => p.id).includes(personnelId)) {
+    const personnelAlreadyAdded = service.personnel!.some(
+      (p) => p.id === personnelId,
+    );
+    if (!personnelAlreadyAdded) {
       const personnel = await this.personnelService.findOne(
         personnelId,
         company,
@@ -126,6 +116,7 @@ export class ServiceService {
       }
 
       service.personnel?.push(personnel);
+
       return this.serviceRepository.save(service);
     } else {
       return service;
@@ -149,7 +140,6 @@ export class ServiceService {
     if (service.personnel) {
       service.personnel = service.personnel.filter((p) => p.id !== personnelId);
     }
-    console.log('Removing personnel from service')
 
     return this.serviceRepository.save(service);
   }

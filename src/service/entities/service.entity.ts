@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { Company } from 'src/company/entities/company.entity';
 import { Personnel } from 'src/personnel/entities/personnel.entity';
+import { ServiceCategory } from 'src/service-category/entities/service-category.entity';
 import {
   Column,
   Entity,
@@ -14,8 +15,20 @@ export class Service {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
+  title: string;
+
+  @Column({ nullable: true })
   description: string;
+
+  @Column({ nullable: true })
+  duration: number;
+
+  @Column({ nullable: true })
+  price: number;
+
+  // @Column()
+  // visiblity: Enum...
 
   @ManyToOne(() => Company)
   @Exclude()
@@ -23,4 +36,10 @@ export class Service {
 
   @ManyToMany(() => Personnel, (personnel) => personnel.services)
   personnel?: Personnel[];
+
+  @ManyToOne(
+    () => ServiceCategory,
+    (serviceCategory) => serviceCategory.services,
+  )
+  serviceCategory?: ServiceCategory;
 }

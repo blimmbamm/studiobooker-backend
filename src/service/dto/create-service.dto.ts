@@ -1,14 +1,23 @@
-import { Type } from 'class-transformer';
-import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { PersonnelDto } from 'src/personnel/dto/personnel.dto';
+import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateServiceDto {
+
   @IsString()
-  description: string;
+  title: string;
 
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PersonnelDto)
-  personnel?: PersonnelDto[];
+  @IsString()
+  description: string;
+  
+  @IsOptional()
+  @IsPositive()
+  duration: number;
+  
+  @IsOptional()
+  @IsPositive()
+  price: number;
+
+  @IsPositive()
+  @IsNumber()
+  serviceCategoryId: number;
 }

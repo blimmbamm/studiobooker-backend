@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -14,6 +15,7 @@ import { Company } from 'src/company/entities/company.entity';
 import { UseCompany } from './auth.decorator';
 import { SignUpDto } from './dto/sign-up.dto';
 import { VerifySignUpDto } from './dto/verify-sign-up.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +26,7 @@ export class AuthController {
   signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto.email, signUpDto.password);
   }
-  
+
   @HttpCode(HttpStatus.OK)
   @Post('verify')
   verifySignUp(@Body() verifySignUpDto: VerifySignUpDto) {
@@ -36,8 +38,34 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+  async signIn(
+    @Body() signInDto: SignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // return this.authService.signIn(signInDto.email, signInDto.password);
+
+    const token = await this.authService.signIn(
+      signInDto.email,
+      signInDto.password,
+    );
+
+    res.cookie('token', token.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { message: 'success' };
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('token');
+
+    return { message: 'success' };
   }
 
   @UseGuards(AuthGuard)

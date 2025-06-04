@@ -16,12 +16,14 @@ import { WorkingTimeModule } from './working-time/working-time.module';
 import { WorkingTime } from './working-time/entities/working-time.entity';
 import { ServiceCategoryModule } from './service-category/service-category.module';
 import { ServiceCategory } from './service-category/entities/service-category.entity';
+import { WorkingTimeCompanySettingsModule } from './working-time-company-settings/working-time-company-settings.module';
+import { WorkingTimeCompanySetting } from './working-time-company-settings/entities/working-time-company-setting.entity';
 
 const typeorm_config: SqliteConnectionOptions = {
   database: 'db',
   type: 'sqlite',
   synchronize: true,
-  entities: [Company, Personnel, Service, ServiceCategory, CompanyInfo, WorkingTime],
+  entities: [Company, Personnel, Service, ServiceCategory, CompanyInfo, WorkingTime, WorkingTimeCompanySetting],
 };
 
 @Module({
@@ -34,6 +36,7 @@ const typeorm_config: SqliteConnectionOptions = {
     CompanyInfoModule,
     WorkingTimeModule,
     ServiceCategoryModule,
+    WorkingTimeCompanySettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

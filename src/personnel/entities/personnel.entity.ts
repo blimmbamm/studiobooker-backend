@@ -37,6 +37,8 @@ export class Personnel {
   @JoinTable()
   services?: Service[];
 
-  @OneToMany(() => WorkingTime, (workingTime) => workingTime.personnel)
+  @OneToMany(() => WorkingTime, (workingTime) => workingTime.personnel, {
+    cascade: true,
+  })
   workingTimes?: WorkingTime[];
 }

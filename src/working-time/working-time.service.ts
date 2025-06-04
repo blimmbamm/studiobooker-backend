@@ -7,14 +7,16 @@ import { WorkingTime } from './entities/working-time.entity';
 import { Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
-import { NotFoundError } from 'rxjs';
 import { UpdateWorkingTimeForPersonnelDto } from 'src/personnel/dto/update-working-time-for-personnel.dto';
+import { WorkingTimeCompanySettingsService } from 'src/working-time-company-settings/working-time-company-settings.service';
 
 @Injectable()
 export class WorkingTimeService {
   constructor(
     @InjectRepository(WorkingTime)
     private workingTimeRepository: Repository<WorkingTime>,
+
+    private workingTimeCompanySettingsService: WorkingTimeCompanySettingsService,
   ) {}
 
   // create(createWorkingTimeDto: CreateWorkingTimeDto) {
@@ -34,6 +36,50 @@ export class WorkingTimeService {
 
     const savedWorkingTime = await this.workingTimeRepository.save(workingTime);
     return plainToInstance(WorkingTime, savedWorkingTime);
+  }
+
+  async createDefaultWorkingTimes(company: Company): Promise<WorkingTime[]> {
+    // 1. Fetch company default working times (still not present)
+    // 2. Copy those and create
+
+    const companyDefaultWorkingTimeSettings =
+      await this.workingTimeCompanySettingsService.getSettings(company);
+
+    return this.workingTimeRepository.create(
+      companyDefaultWorkingTimeSettings.map((workingTimeCompanySetting) => {
+        const { weekday, defaultStart, defaultEnd } = workingTimeCompanySetting;
+        
+        return {
+          weekday,
+          start: defaultStart,
+          end: defaultEnd,
+          activated: false,
+          company,
+          workingTimeCompanySetting,
+        };
+      }),
+    );
+
+    // const DUMMY_DEFAULT_WORKING_TIMES = [
+    //   'Monay',
+    //   'Tuesday',
+    //   'Wednesday',
+    //   'Thursday',
+    //   'Friday',
+    // ].map((weekday) => ({
+    //   weekday,
+    //   start: '09:00',
+    //   end: '17:00',
+    //   company,
+    //   enabled: true,
+    //   activated: true,
+    // }));
+
+    // const workingTimes = this.workingTimeRepository.create(
+    //   DUMMY_DEFAULT_WORKING_TIMES,
+    // );
+
+    // return this.workingTimeRepository.save(workingTimes);
   }
 
   findAll() {
@@ -67,9 +113,9 @@ export class WorkingTimeService {
     personnelId: number,
     weekday: string,
     dto: UpdateWorkingTimeForPersonnelDto,
-  ){
+  ) {
     const workingTime = await this.workingTimeRepository.findOne({
-      where: { company, personnel: {id: personnelId}, weekday },
+      where: { company, personnel: { id: personnelId }, weekday },
     });
 
     if (!workingTime) {
@@ -79,7 +125,7 @@ export class WorkingTimeService {
     const updatedWorkingTime = { ...workingTime, ...dto };
 
     return this.workingTimeRepository.save(updatedWorkingTime);
-  };
+  }
 
   async remove(company: Company, id: number) {
     const workingTime = await this.workingTimeRepository.findOne({

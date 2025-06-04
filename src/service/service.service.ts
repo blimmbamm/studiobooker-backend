@@ -101,7 +101,7 @@ export class ServiceService {
     }
 
     // Since personnel relation gets loaded, it should be defined in the following,
-    // but unsure if using ! instead of ? would
+    // but unsure if using ! instead of ? would be more correct
     const personnelAlreadyAdded = service.personnel!.some(
       (p) => p.id === personnelId,
     );

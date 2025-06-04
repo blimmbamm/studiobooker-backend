@@ -41,7 +41,7 @@ export class PersonnelController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.personnelService.findOne(+id, company);
+    return this.personnelService.findOneStructured(+id, company);
   }
 
   @Patch(':id')

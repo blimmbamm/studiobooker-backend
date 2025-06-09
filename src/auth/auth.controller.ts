@@ -23,17 +23,21 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('register')
-  signUp(@Body() signUpDto: SignUpDto) {
-    return this.authService.signUp(signUpDto.email, signUpDto.password);
+  async signUp(@Body() signUpDto: SignUpDto) {
+    await this.authService.signUp(signUpDto.email, signUpDto.password);
+
+    return { message: 'success' };
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('verify')
-  verifySignUp(@Body() verifySignUpDto: VerifySignUpDto) {
-    return this.authService.verifySignUp(
+  async verifySignUp(@Body() verifySignUpDto: VerifySignUpDto) {
+    await this.authService.verifySignUp(
       verifySignUpDto.email,
       verifySignUpDto.token,
     );
+
+    return { message: 'success' };
   }
 
   @HttpCode(HttpStatus.OK)

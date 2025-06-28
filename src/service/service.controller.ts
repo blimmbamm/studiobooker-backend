@@ -51,6 +51,15 @@ export class ServiceController {
     return this.serviceService.update(+id, company, updateServiceDto);
   }
 
+  @Patch(':id/category/:categoryId')
+  updateCategory(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+    @Param('categoryId', ParseIntPipe) categoryId: string,
+  ) {
+    return this.serviceService.updateCategory(+id, +categoryId, company);
+  }
+
   @Delete(':id')
   remove(
     @UseCompany() company: Company,

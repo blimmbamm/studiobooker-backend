@@ -64,7 +64,7 @@ export class ServiceService {
   findOneStructured(id: number, company: Company) {
     return this.serviceRepository.findOne({
       where: { id, company },
-      relations: { personnel: true },
+      relations: { personnel: true, serviceCategory: true },
     });
   }
 
@@ -83,6 +83,31 @@ export class ServiceService {
 
     const updatedService = { ...service, ...updateServiceDto };
 
+    return this.serviceRepository.save(updatedService);
+  }
+
+  async updateCategory(
+    id: number,
+    serviceCategoryId: number,
+    company: Company,
+  ) {
+    const service = await this.serviceRepository.findOne({
+      where: { id, company },
+    });
+
+    if (!service) {
+      throw new NotFoundException();
+    }
+
+    const serviceCategory = await this.serviceCategoryService.findOne(
+      company,
+      serviceCategoryId,
+    );
+    // Failure is handled inside serviceCategoryService.findOne, however this is not quite consistent
+
+    const updatedService: Service = { ...service, serviceCategory };
+
+    // Todo: use instanceToPlain, because now the serviceCategory is added to return
     return this.serviceRepository.save(updatedService);
   }
 

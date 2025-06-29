@@ -10,11 +10,15 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ServiceCategoryService } from './service-category.service';
-import { CreateServiceCategoryDto } from './dto/create-service-category.dto';
+import {
+  CreateServiceCategoryDto,
+  CreateServiceInCategoryDto,
+} from './dto/create-service-category.dto';
 import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
+import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 
 @UseGuards(AuthGuard)
 @Controller('service-category')
@@ -31,6 +35,19 @@ export class ServiceCategoryController {
     return this.serviceCategoryService.create(
       company,
       createServiceCategoryDto,
+    );
+  }
+
+  @Post(':id/service')
+  createServiceInCategory(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+    @Body() dto: CreateServiceInCategoryDto,
+  ) {
+    return this.serviceCategoryService.createServiceInCategory(
+      company,
+      +id,
+      dto,
     );
   }
 

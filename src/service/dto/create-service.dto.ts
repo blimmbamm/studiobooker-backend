@@ -1,21 +1,20 @@
 import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateServiceDto {
-
   @IsString()
   title: string;
 
   @IsOptional()
   @IsString()
-  description: string;
-  
+  description?: string;
+
   @IsOptional()
   @IsPositive()
-  duration: number;
-  
+  duration?: number;
+
   @IsOptional()
   @IsPositive()
-  price: number;
+  price?: number;
 
   @IsPositive()
   @IsNumber()

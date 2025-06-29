@@ -4,9 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
 import { Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
@@ -71,7 +72,19 @@ export class ServiceService {
       throw new NotFoundException();
     }
 
-    return service;
+    const personnel = await this.personnelService.findAll(company);
+
+    const { personnel: servicePersonnel, ...other } = service;
+
+    return {
+      ...other,
+      personnel: personnel.map((p) => ({
+        ...p,
+        staffIsQualifiedForService: Boolean(
+          servicePersonnel?.find((sp) => sp.id === p.id),
+        ),
+      })),
+    };
   }
 
   async update(

@@ -61,11 +61,17 @@ export class ServiceService {
     });
   }
 
-  findOneStructured(id: number, company: Company) {
-    return this.serviceRepository.findOne({
+  async findOneStructured(id: number, company: Company) {
+    const service = await this.serviceRepository.findOne({
       where: { id, company },
       relations: { personnel: true, serviceCategory: true },
     });
+
+    if (!service) {
+      throw new NotFoundException();
+    }
+
+    return service;
   }
 
   async update(

@@ -33,7 +33,9 @@ export class Personnel {
   @Exclude()
   company?: Company;
 
-  @ManyToMany(() => Service, (service) => service.personnel)
+  @ManyToMany(() => Service, (service) => service.personnel, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable()
   services?: Service[];
 

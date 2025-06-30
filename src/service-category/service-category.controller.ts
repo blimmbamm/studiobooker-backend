@@ -18,7 +18,6 @@ import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
-import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 
 @UseGuards(AuthGuard)
 @Controller('service-category')

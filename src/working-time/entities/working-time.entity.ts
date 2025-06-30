@@ -2,12 +2,7 @@ import { Exclude } from 'class-transformer';
 import { Company } from 'src/company/entities/company.entity';
 import { Personnel } from 'src/personnel/entities/personnel.entity';
 import { WorkingTimeCompanySetting } from 'src/working-time-company-settings/entities/working-time-company-setting.entity';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class WorkingTime {
@@ -34,6 +29,8 @@ export class WorkingTime {
   @Exclude()
   company?: Company;
 
-  @ManyToOne(() => Personnel, (personnel) => personnel.workingTimes)
+  @ManyToOne(() => Personnel, (personnel) => personnel.workingTimes, {
+    onDelete: 'CASCADE',
+  })
   personnel?: Personnel;
 }

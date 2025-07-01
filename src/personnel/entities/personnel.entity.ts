@@ -29,6 +29,9 @@ export class Personnel {
   @Column({ nullable: true, type: 'text' })
   notes: string;
 
+  @Column({ default: false })
+  activated: boolean;
+
   @ManyToOne(() => Company)
   @Exclude()
   company?: Company;

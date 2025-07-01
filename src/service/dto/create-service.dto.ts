@@ -1,4 +1,10 @@
-import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()
@@ -15,6 +21,10 @@ export class CreateServiceDto {
   @IsOptional()
   @IsPositive()
   price?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  activated?: boolean;
 
   @IsPositive()
   @IsNumber()

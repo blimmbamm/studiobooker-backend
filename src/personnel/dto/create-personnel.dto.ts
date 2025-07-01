@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -27,4 +28,8 @@ export class CreatePersonnelDto {
   @IsOptional()
   @IsString()
   notes: string;
+
+  @IsOptional()
+  @IsBoolean()
+  activated: boolean;
 }

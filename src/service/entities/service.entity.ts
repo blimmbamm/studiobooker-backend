@@ -27,8 +27,8 @@ export class Service {
   @Column({ nullable: true })
   price: number;
 
-  // @Column()
-  // visiblity: Enum...
+  @Column({default: false})
+  activated: boolean;
 
   @ManyToOne(() => Company)
   @Exclude()

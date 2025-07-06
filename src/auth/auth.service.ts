@@ -64,12 +64,8 @@ export class AuthService {
 
     // Check token equality
     if (compareSync(token, company.hashedVerificationToken)) {
-      // If token is correct, update company
-      this.companyService.update(company.id, {
-        verified: true,
-        hashedVerificationToken: null,
-        verificationTokenExpiresAt: null,
-      });
+      // If token is correct update company and insert settings etc.
+      this.companyService.finishCompanyInitialization(company.id);
     } else {
       throw new BadRequestException('Invalid token');
     }

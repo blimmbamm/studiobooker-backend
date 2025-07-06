@@ -154,7 +154,7 @@ export class PersonnelService {
     id: number,
     company: Company,
     updatePersonnelDto: UpdatePersonnelDto,
-  ) {
+  ): Promise<Personnel> {
     const personnel = await this.personnelRepository.findOne({
       where: { id, company },
     });
@@ -190,33 +190,33 @@ export class PersonnelService {
     // update staff.services accordingly
   }
 
-  async addWorkingTime(id: number, company: Company, weekday: string) {
-    const personnel = await this.personnelRepository.findOne({
-      where: { id, company },
-    });
+  // async addWorkingTime(id: number, company: Company, weekday: string) {
+  //   const personnel = await this.personnelRepository.findOne({
+  //     where: { id, company },
+  //   });
 
-    if (!personnel) {
-      throw new NotFoundException();
-    }
+  //   if (!personnel) {
+  //     throw new NotFoundException();
+  //   }
 
-    return this.workingTimeService.create(company, personnel, {
-      weekday,
-      start: '09:00',
-      end: '17:00',
-    });
-  }
+  //   return this.workingTimeService.create(company, personnel, {
+  //     weekday,
+  //     start: '09:00',
+  //     end: '17:00',
+  //   });
+  // }
 
-  async updateWorkingTime(
-    company: Company,
-    id: number,
-    weekday: string,
-    dto: UpdateWorkingTimeForPersonnelDto,
-  ) {
-    return this.workingTimeService.updateByPersonnelAndWeekday(
-      company,
-      id,
-      weekday,
-      dto,
-    );
-  }
+  // async updateWorkingTime(
+  //   company: Company,
+  //   id: number,
+  //   weekday: string,
+  //   dto: UpdateWorkingTimeForPersonnelDto,
+  // ) {
+  //   return this.workingTimeService.updateByPersonnelAndWeekday(
+  //     company,
+  //     id,
+  //     weekday,
+  //     dto,
+  //   );
+  // }
 }

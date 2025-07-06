@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { CreateWorkingTimeCompanySettingDto } from './dto/create-working-time-company-setting.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateWorkingTimeCompanySettingDto } from './dto/update-working-time-company-setting.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkingTimeCompanySetting } from './entities/working-time-company-setting.entity';
@@ -17,21 +16,26 @@ export class WorkingTimeCompanySettingsService {
     return this.workingTimeCompanySettingRepository.find({
       where: { company },
     });
-    // return ['Monay', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(
-    //   (weekday) => ({
-    //     id: 1,
-    //     weekday,
-    //     defaultStart: '09:00',
-    //     defaultEnd: '17:00',
-    //     enabled: true,
-    //   }),
-    // );
   }
 
-  create(
-    createWorkingTimeCompanySettingDto: CreateWorkingTimeCompanySettingDto,
-  ) {
-    return 'This action adds a new workingTimeCompanySetting';
+  /** This only creates the entities, but doesn't save them */
+  create() {
+    return this.workingTimeCompanySettingRepository.create(
+      [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ].map((weekday) => ({
+        weekday,
+        defaultStart: '09:00',
+        defaultEnd: '17:00',
+        enabled: weekday === 'Saturday' || weekday === 'Sunday' ? false : true,
+      })),
+    );
   }
 
   findAll() {
@@ -42,14 +46,24 @@ export class WorkingTimeCompanySettingsService {
     return `This action returns a #${id} workingTimeCompanySetting`;
   }
 
-  update(
+  async update(
+    company: Company,
     id: number,
     updateWorkingTimeCompanySettingDto: UpdateWorkingTimeCompanySettingDto,
   ) {
-    return `This action updates a #${id} workingTimeCompanySetting`;
+    const workingTimeSetting =
+      await this.workingTimeCompanySettingRepository.findOne({
+        where: { id, company },
+      });
+
+    if (!workingTimeSetting) {
+      throw new NotFoundException();
+    }
+
+    return this.workingTimeCompanySettingRepository.save({
+      ...workingTimeSetting,
+      ...updateWorkingTimeCompanySettingDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} workingTimeCompanySetting`;
-  }
 }

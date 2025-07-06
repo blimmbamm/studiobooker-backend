@@ -73,8 +73,9 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('company')
-  getProfile(@UseCompany() company: Company) {
-    return company;
+  @Get('check')
+  checkAuth(@UseCompany() company: Company) {
+    // return { id: company.id, email: company.email };
+    return { message: 'success' };
   }
 }

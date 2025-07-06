@@ -1,34 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CompanyInfoService } from './company-info.service';
-import { CreateCompanyInfoDto } from './dto/create-company-info.dto';
 import { UpdateCompanyInfoDto } from './dto/update-company-info.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { UseCompany } from 'src/auth/auth.decorator';
+import { Company } from 'src/company/entities/company.entity';
 
+@UseGuards(AuthGuard)
 @Controller('company-info')
 export class CompanyInfoController {
   constructor(private readonly companyInfoService: CompanyInfoService) {}
 
-  @Post()
-  create(@Body() createCompanyInfoDto: CreateCompanyInfoDto) {
-    return this.companyInfoService.create(createCompanyInfoDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.companyInfoService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyInfoService.findOne(+id);
-  }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyInfoDto: UpdateCompanyInfoDto) {
-    return this.companyInfoService.update(+id, updateCompanyInfoDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.companyInfoService.remove(+id);
+  update(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+    @Body() updateCompanyInfoDto: UpdateCompanyInfoDto,
+  ) {
+    return this.companyInfoService.update(company, +id, updateCompanyInfoDto);
   }
 }

@@ -61,22 +61,22 @@ export class PersonnelController {
     return this.personnelService.remove(+id, company);
   }
 
-  @Post(':id/working-time')
-  addWorkingTime(
-    @UseCompany() company: Company,
-    @Param('id', ParseIntPipe) id: string,
-    @Body() dto: AddWorkingTimeToPersonnelDto,
-  ) {
-    return this.personnelService.addWorkingTime(+id, company, dto.weekday);
-  }
+  // @Post(':id/working-time')
+  // addWorkingTime(
+  //   @UseCompany() company: Company,
+  //   @Param('id', ParseIntPipe) id: string,
+  //   @Body() dto: AddWorkingTimeToPersonnelDto,
+  // ) {
+  //   return this.personnelService.addWorkingTime(+id, company, dto.weekday);
+  // }
 
-  @Patch(':id/working-time/:weekday')
-  updateWorkingTime(
-    @UseCompany() company: Company,
-    @Param('id', ParseIntPipe) id: string,
-    @Param('weekday') weekday: string,
-    @Body() dto: UpdateWorkingTimeForPersonnelDto,
-  ) {
-    return this.personnelService.updateWorkingTime(company, +id, weekday, dto)
-  }
+  // @Patch(':id/working-time/:weekday')
+  // updateWorkingTime(
+  //   @UseCompany() company: Company,
+  //   @Param('id', ParseIntPipe) id: string,
+  //   @Param('weekday') weekday: string,
+  //   @Body() dto: UpdateWorkingTimeForPersonnelDto,
+  // ) {
+  //   return this.personnelService.updateWorkingTime(company, +id, weekday, dto)
+  // }
 }

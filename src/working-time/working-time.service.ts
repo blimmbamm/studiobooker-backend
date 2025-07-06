@@ -108,24 +108,24 @@ export class WorkingTimeService {
     return this.workingTimeRepository.save(updatedWorkingTime);
   }
 
-  async updateByPersonnelAndWeekday(
-    company: Company,
-    personnelId: number,
-    weekday: string,
-    dto: UpdateWorkingTimeForPersonnelDto,
-  ) {
-    const workingTime = await this.workingTimeRepository.findOne({
-      where: { company, personnel: { id: personnelId }, weekday },
-    });
+  // async updateByPersonnelAndWeekday(
+  //   company: Company,
+  //   personnelId: number,
+  //   weekday: string,
+  //   dto: UpdateWorkingTimeForPersonnelDto,
+  // ) {
+  //   const workingTime = await this.workingTimeRepository.findOne({
+  //     where: { company, personnel: { id: personnelId }, weekday },
+  //   });
 
-    if (!workingTime) {
-      throw new NotFoundException();
-    }
+  //   if (!workingTime) {
+  //     throw new NotFoundException();
+  //   }
 
-    const updatedWorkingTime = { ...workingTime, ...dto };
+  //   const updatedWorkingTime = { ...workingTime, ...dto };
 
-    return this.workingTimeRepository.save(updatedWorkingTime);
-  }
+  //   return this.workingTimeRepository.save(updatedWorkingTime);
+  // }
 
   async remove(company: Company, id: number) {
     const workingTime = await this.workingTimeRepository.findOne({

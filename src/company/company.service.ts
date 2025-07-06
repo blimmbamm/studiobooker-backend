@@ -4,11 +4,16 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
 import { Repository } from 'typeorm';
+import { CompanyInfoService } from 'src/company-info/company-info.service';
+import { WorkingTimeCompanySettingsService } from 'src/working-time-company-settings/working-time-company-settings.service';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company) private companyRepository: Repository<Company>,
+    private companyInfoService: CompanyInfoService,
+    private workingTimeCompanySettingsService: WorkingTimeCompanySettingsService,
   ) {}
 
   create(createCompanyDto: CreateCompanyDto) {
@@ -17,12 +22,17 @@ export class CompanyService {
     return this.companyRepository.save(newCompany);
   }
 
-  findAll() {
-    return `This action returns all company`;
-  }
-
   findOne(id: number) {
     return this.companyRepository.findOne({ where: { id } });
+  }
+
+  async findOneWithInfoAndSettings(id: number) {
+    const company = await this.companyRepository.findOne({
+      where: { id },
+      relations: { companyInfo: true, workingTimeSettings: true },
+    });
+
+    return plainToInstance(Company, company)
   }
 
   findOneByMail(email: string) {
@@ -45,12 +55,32 @@ export class CompanyService {
     const updatedCompany: Company = {
       ...company,
       ...updateCompanyDto,
-      verified: true,
-      hashedVerificationToken: null,
-      verificationTokenExpiresAt: null,
     };
 
     return this.companyRepository.save(updatedCompany);
+  }
+
+  /**
+   * This is called when company registration is successfully verified.
+   *
+   * Set verified flag, add company info and settings entities.
+   */
+  async finishCompanyInitialization(id: number) {
+    const company = await this.findOne(id);
+
+    if (!company) {
+      throw new NotFoundException();
+    }
+
+    company.verified = true;
+    company.hashedVerificationToken = null;
+    company.verificationTokenExpiresAt = null;
+    company.companyInfo = this.companyInfoService.create();
+    company.workingTimeSettings =
+      this.workingTimeCompanySettingsService.create();
+    // Create other settings...
+
+    return this.companyRepository.save(company);
   }
 
   remove(id: number) {

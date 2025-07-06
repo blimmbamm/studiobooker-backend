@@ -13,5 +13,5 @@ export class CompanyInfo {
   description: string | null;
 
   @OneToOne(() => Company, (company) => company.companyInfo)
-  company: Company;
+  company?: Company;
 }

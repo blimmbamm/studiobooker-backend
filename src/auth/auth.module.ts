@@ -3,14 +3,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../../constants';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Company } from 'src/company/entities/company.entity';
 import { EmailService } from 'src/email/email.service';
-import { CompanyService } from 'src/company/company.service';
+import { CompanyModule } from 'src/company/company.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company]),
+    CompanyModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -18,6 +16,6 @@ import { CompanyService } from 'src/company/company.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, CompanyService],
+  providers: [AuthService, EmailService],
 })
 export class AuthModule {}

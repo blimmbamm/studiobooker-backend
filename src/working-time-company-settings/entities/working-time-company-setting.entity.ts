@@ -20,7 +20,7 @@ export class WorkingTimeCompanySetting {
   @Column()
   enabled: boolean;
 
-  @ManyToOne(() => Company)
+  @ManyToOne(() => Company, (company) => company.workingTimeSettings)
   @Exclude()
   company?: Company;
 }

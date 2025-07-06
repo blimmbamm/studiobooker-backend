@@ -79,11 +79,33 @@ export class ServiceCategoryService {
     });
   }
 
-  update(id: number, updateServiceCategoryDto: UpdateServiceCategoryDto) {
-    return `This action updates a #${id} serviceCategory`;
+  async update(
+    company: Company,
+    id: number,
+    updateServiceCategoryDto: UpdateServiceCategoryDto,
+  ) {
+    const category = await this.serviceCategoryRepository.findOne({
+      where: { id, company },
+    });
+
+    if (!category) {
+      throw new NotFoundException();
+    }
+
+    const updatedCategory = { ...category, ...updateServiceCategoryDto };
+
+    return this.serviceCategoryRepository.save(updatedCategory);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} serviceCategory`;
+  async remove(company: Company, id: number) {
+    const category = await this.serviceCategoryRepository.findOne({
+      where: { id, company },
+    });
+
+    if (category) {
+      return this.serviceCategoryRepository.remove(category);
+    } else {
+      throw new NotFoundException();
+    }
   }
 }

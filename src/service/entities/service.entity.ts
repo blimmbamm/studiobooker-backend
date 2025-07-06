@@ -27,19 +27,22 @@ export class Service {
   @Column({ nullable: true })
   price: number;
 
-  @Column({default: false})
+  @Column({ default: false })
   activated: boolean;
 
   @ManyToOne(() => Company)
   @Exclude()
   company?: Company;
 
-  @ManyToMany(() => Personnel, (personnel) => personnel.services)
+  @ManyToMany(() => Personnel, (personnel) => personnel.services, {
+    onDelete: 'CASCADE',
+  })
   personnel?: Personnel[];
 
   @ManyToOne(
     () => ServiceCategory,
     (serviceCategory) => serviceCategory.services,
+    { onDelete: 'CASCADE' },
   )
   serviceCategory?: ServiceCategory;
 }

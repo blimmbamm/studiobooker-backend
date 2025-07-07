@@ -75,13 +75,13 @@ export class PersonnelService {
       .andWhere('personnel.companyId = :companyId', { companyId: company.id })
       .leftJoinAndSelect('personnel.services', 'services')
       .leftJoinAndSelect('personnel.workingTimes', 'workingTime')
-      .leftJoin(
-        'workingTime.workingTimeCompanySetting',
-        'workingTimeCompanySetting',
-      )
-      .andWhere('workingTimeCompanySetting.enabled = :enabled', {
-        enabled: true,
-      })
+      // .leftJoin(
+      //   'workingTime.workingTimeCompanySetting',
+      //   'workingTimeCompanySetting',
+      // )
+      // .andWhere('workingTimeCompanySetting.enabled = :enabled', {
+      //   enabled: true,
+      // })
       .getOne();
 
     // This could be used to filter on personnel first before join related data:

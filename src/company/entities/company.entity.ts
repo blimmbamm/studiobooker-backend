@@ -18,21 +18,23 @@ export class Company {
   @Column()
   email: string;
 
+  // What happens if i remove this?
   @Column({ type: String, nullable: true })
   name: string | null;
 
   @Exclude()
   @Column()
   hashedPassword: string;
-  
+
   @Exclude()
   @Column({ type: String, nullable: true })
   hashedVerificationToken: string | null;
-  
+
   @Exclude()
   @Column({ type: Date, nullable: true })
   verificationTokenExpiresAt: Date | null;
 
+  @Exclude()
   @Column()
   verified: boolean;
 

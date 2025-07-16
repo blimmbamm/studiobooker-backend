@@ -31,9 +31,10 @@ export class WorkingTimeCompanySettingsService {
         'Sunday',
       ].map((weekday) => ({
         weekday,
-        defaultStart: '09:00',
-        defaultEnd: '17:00',
-        enabled: weekday === 'Saturday' || weekday === 'Sunday' ? false : true,
+        start: '09:00',
+        end: '17:00',
+        // activated: weekday === 'Saturday' || weekday === 'Sunday' ? false : true,
+        activated: true, // for now, this isn't used
       })),
     );
   }
@@ -65,5 +66,4 @@ export class WorkingTimeCompanySettingsService {
       ...updateWorkingTimeCompanySettingDto,
     });
   }
-
 }

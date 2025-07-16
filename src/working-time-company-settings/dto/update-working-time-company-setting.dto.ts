@@ -6,14 +6,14 @@ export class UpdateWorkingTimeCompanySettingDto {
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
     message: 'start must be in HH:mm format',
   })
-  defaultStart: string;
+  start: string;
 
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
     message: 'end must be in HH:mm format',
   })
-  defaultEnd: string;
+  end: string;
 
   @IsOptional()
   @IsBoolean()
-  enabled?: boolean;
+  activated?: boolean;
 }

@@ -47,12 +47,12 @@ export class WorkingTimeService {
 
     return this.workingTimeRepository.create(
       companyDefaultWorkingTimeSettings.map((workingTimeCompanySetting) => {
-        const { weekday, defaultStart, defaultEnd } = workingTimeCompanySetting;
-        
+        const { weekday, start, end } = workingTimeCompanySetting;
+
         return {
           weekday,
-          start: defaultStart,
-          end: defaultEnd,
+          start,
+          end,
           activated: false,
           company,
           workingTimeCompanySetting,

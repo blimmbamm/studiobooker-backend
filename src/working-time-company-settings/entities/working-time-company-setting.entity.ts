@@ -2,6 +2,11 @@ import { Exclude } from 'class-transformer';
 import { Company } from 'src/company/entities/company.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
+/**
+ * This is deliberately the same as working time, because both in the end contain the same data.
+ *
+ * Maybe this could extend the other working time entity?!
+ */
 @Entity()
 export class WorkingTimeCompanySetting {
   @PrimaryGeneratedColumn()
@@ -11,14 +16,14 @@ export class WorkingTimeCompanySetting {
   weekday: string;
 
   @Column()
-  defaultStart: string;
+  start: string;
 
   @Column()
-  defaultEnd: string;
+  end: string;
 
   // If weekday should be visible at all (e.g. not sunday) -> company setting
   @Column()
-  enabled: boolean;
+  activated: boolean;
 
   @ManyToOne(() => Company, (company) => company.workingTimeSettings)
   @Exclude()

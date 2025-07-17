@@ -17,7 +17,7 @@ export class Personnel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true }) // TODO: This should not be unique... at most this should be unique within the company
   name: string;
 
   @Column({ nullable: true })

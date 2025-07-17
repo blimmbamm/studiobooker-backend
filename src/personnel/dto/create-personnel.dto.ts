@@ -17,19 +17,19 @@ export class CreatePersonnelDto {
   @ValidateIf((o) => o.email !== null)
   @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @Transform(({ value }) => (value === '' ? null : value))
   @IsOptional()
   @IsString()
-  phone: string;
+  phone?: string;
 
   @Transform(({ value }) => (value === '' ? null : value))
   @IsOptional()
   @IsString()
-  notes: string;
+  notes?: string;
 
   @IsOptional()
   @IsBoolean()
-  activated: boolean;
+  activated?: boolean;
 }

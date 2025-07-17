@@ -86,4 +86,13 @@ export class CompanyService {
   remove(id: number) {
     return `This action removes a #${id} company`;
   }
+
+  seedData(){
+    /**
+     * Idea: 
+     * - create company and finalize it. 
+     * - add all relations (staff+appointments) to company, add cascade and save
+     * - but: This would need unprotected endpoint, so must not go to company controller
+     */
+  }
 }

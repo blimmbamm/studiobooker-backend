@@ -17,6 +17,7 @@ import { ServiceService } from 'src/service/service.service';
 import { WorkingTimeService } from 'src/working-time/working-time.service';
 import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
 import { ServiceCategoryService } from 'src/service-category/service-category.service';
+import { Service } from 'src/service/entities/service.entity';
 
 @Injectable()
 export class PersonnelService {
@@ -69,6 +70,15 @@ export class PersonnelService {
       where: { company },
       // relations: { services: true },
     });
+  }
+
+  findAllWithService(company: Company, serviceId: number) {
+    return this.personnelRepository
+      .createQueryBuilder('personnel')
+      .leftJoin('personnel.services', 'service')
+      .where('personnel.companyId = :companyId', { companyId: company.id })
+      .andWhere('service.id = :serviceId', { serviceId })
+      .getMany();
   }
 
   async findOne(id: number, company: Company) {

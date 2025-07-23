@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PersonnelService } from './personnel.service';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
@@ -17,6 +18,7 @@ import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
 import { AddWorkingTimeToPersonnelDto } from './dto/add-working-time-to-personnel.dto';
 import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
+import { OptionalParseIntPipe } from 'src/common/pipes/optional-parse-int.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('personnel')
@@ -32,7 +34,13 @@ export class PersonnelController {
   }
 
   @Get()
-  findAll(@UseCompany() company: Company) {
+  findAll(
+    @UseCompany() company: Company,
+    @Query('serviceId', OptionalParseIntPipe) serviceId?: number,
+  ) {
+    if (serviceId) {
+      return this.personnelService.findAllWithService(company, serviceId);
+    }
     return this.personnelService.findAll(company);
   }
 

@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { CompanyModule } from 'src/company/company.module';
 import { PersonnelModule } from 'src/personnel/personnel.module';
+import { ServiceModule } from 'src/service/service.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment]),
     CompanyModule,
     PersonnelModule,
+    ServiceModule,
   ],
   controllers: [AppointmentController],
   providers: [AppointmentService],

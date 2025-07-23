@@ -49,10 +49,6 @@ export class ServiceService {
     return this.serviceRepository.find({
       where: { company },
       relations: { serviceCategory: true },
-      // relations: {personnel: {services: true}}
-      // Relations depends on what is needed in the client in the end...
-      // But maybe this should be configurable via queryParams
-      // relations: { personnel: true },
     });
   }
 
@@ -60,6 +56,17 @@ export class ServiceService {
     return this.serviceRepository.findOne({
       where: { id, company },
     });
+  }
+
+  async findOneByPersonnel(company: Company, id: number, staffId: number) {
+    const service = await this.serviceRepository.findOne({
+      where: { id, company, personnel: { id: staffId } },
+      relations: { personnel: { workingTimes: true } },
+    });
+
+    if (!service) throw new NotFoundException();
+
+    return service;
   }
 
   async findOneStructured(id: number, company: Company) {
@@ -149,6 +156,7 @@ export class ServiceService {
     const personnelAlreadyAdded = service.personnel!.some(
       (p) => p.id === personnelId,
     );
+
     if (!personnelAlreadyAdded) {
       const personnel = await this.personnelService.findOne(
         personnelId,

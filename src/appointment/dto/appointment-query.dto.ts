@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsDate } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import * as dayjs from 'dayjs'; // has to stay like this
 import * as utc from 'dayjs/plugin/utc';
 import * as customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -9,18 +9,20 @@ dayjs.extend(customParseFormat);
 
 export class AppointmentQueryDto {
   @Transform(({ value }) => {
-    const parsed = dayjs.utc(value, 'YYYYMMDD', true); // strict mode
-    return parsed.isValid() ? parsed.toDate() : null;
+    const parsed = dayjs(value, 'YYYYMMDD', true); // strict mode
+    return parsed.isValid() ? value : null;
   })
-  @IsDate()
-  from: Date;
+  @IsNotEmpty()
+  @IsString()
+  from: string;
 
   @Transform(({ value }) => {
-    const parsed = dayjs.utc(value, 'YYYYMMDD', true);
-    return parsed.isValid() ? parsed.endOf('day').toDate() : null;
+    const parsed = dayjs(value, 'YYYYMMDD', true); // strict mode
+    return parsed.isValid() ? value : null;
   })
-  @IsDate()
-  to: Date;
+  @IsNotEmpty()
+  @IsString()
+  to: string;
 
   @Transform(({ value }) => {
     const values = typeof value === 'string' ? value.split(',') : value;

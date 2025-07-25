@@ -11,7 +11,7 @@ import {
 import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ServiceCategory } from './entities/service-category.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
@@ -64,10 +64,15 @@ export class ServiceCategoryService {
     return service;
   }
 
-  findAll(company: Company) {
+  findAll(company: Company, filter?: FindOptionsWhere<ServiceCategory>) {
+    console.log( {
+      company,
+      ...filter
+    })
     return this.serviceCategoryRepository.find({
       where: {
         company,
+        ...filter,
       },
       relations: { services: true },
     });

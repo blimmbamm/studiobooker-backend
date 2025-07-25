@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsNumber,
@@ -14,10 +15,12 @@ export class CreateServiceDto {
   @IsString()
   description?: string;
 
+  @Transform(({ value }) => (value === 0 ? null : value))
   @IsOptional()
   @IsPositive()
   duration?: number;
 
+  @Transform(({ value }) => (value === 0 ? null : value))
   @IsOptional()
   @IsPositive()
   price?: number;

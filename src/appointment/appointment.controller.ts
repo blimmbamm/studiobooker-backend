@@ -14,6 +14,7 @@ import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
 import { AppointmentQueryDto } from './dto/appointment-query.dto';
 import { AvailableSlotsQueryDto } from './dto/available-slots-query.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 
 @UseGuards(AuthGuard)
 @Controller('appointment')
@@ -43,5 +44,13 @@ export class AppointmentController {
       company,
       availableSlotsQueryDto,
     );
+  }
+
+  @Post()
+  createAppointment(
+    @UseCompany() company: Company,
+    @Body() createAppointmentDto: CreateAppointmentDto,
+  ) {
+    return this.appointmentService.createAppointment(company, createAppointmentDto);
   }
 }

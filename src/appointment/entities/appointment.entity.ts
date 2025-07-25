@@ -18,23 +18,6 @@ export class Appointment {
   @Column()
   confirmed: boolean;
 
-  @ManyToOne(() => Personnel) // inverse side?
-  personnel?: Personnel;
-
-  /**
-   * Appointment may be unrelated to service, e.g. vacation/other blockers
-   */
-  @ManyToOne(() => Service, { nullable: true })
-  service?: Service | null;
-
-  /**
-   * As for service, may be null if not related to a booked service.
-   *
-   * Later, this will be a relation to some separate customer entity.
-   */
-  @Column({ type: 'text', nullable: true })
-  customer: string | null;
-
   /**
    * Short title of the appointment that could be
    * displayed in the calendar.
@@ -47,6 +30,23 @@ export class Appointment {
    */
   @Column({ type: 'text', nullable: true })
   notes: string | null;
+
+  /**
+   * As for service, may be null if not related to a booked service.
+   *
+   * Later, this will be a relation to some separate customer entity.
+   */
+  @Column({ type: 'text', nullable: true })
+  customer: string | null;
+
+  @ManyToOne(() => Personnel) // inverse side?
+  personnel?: Personnel;
+
+  /**
+   * Appointment may be unrelated to service, e.g. vacation/other blockers
+   */
+  @ManyToOne(() => Service, { nullable: true })
+  service?: Service | null;
 
   @ManyToOne(() => Company)
   @Exclude()

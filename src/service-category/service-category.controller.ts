@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { ServiceCategoryService } from './service-category.service';
 import {
@@ -18,6 +20,7 @@ import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
+import { OptionalParseBoolPipe } from '../common/pipes/optional-parse-bool.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('service-category')
@@ -51,8 +54,14 @@ export class ServiceCategoryController {
   }
 
   @Get()
-  findAll(@UseCompany() company: Company) {
-    return this.serviceCategoryService.findAll(company);
+  findAll(
+    @UseCompany() company: Company,
+    @Query('activated', OptionalParseBoolPipe) activated?: boolean,
+  ) {
+    console.log(activated);
+    return this.serviceCategoryService.findAll(company, {
+      services: { activated },
+    });
   }
 
   @Get(':id')

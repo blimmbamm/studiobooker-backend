@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -9,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsRelations, Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { PersonnelService } from 'src/personnel/personnel.service';
@@ -52,9 +53,14 @@ export class ServiceService {
     });
   }
 
-  findOne(id: number, company: Company) {
+  findOne(
+    id: number,
+    company: Company,
+    relations?: FindOptionsRelations<Service>,
+  ) {
     return this.serviceRepository.findOne({
       where: { id, company },
+      relations,
     });
   }
 
@@ -108,6 +114,14 @@ export class ServiceService {
     }
 
     const updatedService = { ...service, ...updateServiceDto };
+
+    // TODO: This could be refactored to some generic service validation
+    if (
+      updateServiceDto.activated &&
+      (!updatedService.duration || !updatedService.price)
+    ) {
+      throw new BadRequestException();
+    }
 
     return this.serviceRepository.save(updatedService);
   }

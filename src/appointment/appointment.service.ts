@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
@@ -18,6 +18,8 @@ import {
 } from './dto/available-slots.dto';
 import { CalendarDay } from './dto/calendar-day.dto';
 import { DummyAppointment } from './types/dummy-appointment';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { plainToInstance } from 'class-transformer';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(timezone);
@@ -225,6 +227,44 @@ export class AppointmentService {
       to: toDate.toDate(),
       staff,
     });
+  }
+
+  async createAppointment(
+    company: Company,
+    createAppointmentDto: CreateAppointmentDto,
+  ) {
+    const {
+      serviceId,
+      staffId,
+      customerName: customer,
+      ...rest
+    } = createAppointmentDto;
+
+    const personnel = await this.personnelService.findOne(staffId, company);
+    const service = await this.serviceService.findOne(serviceId, company, {
+      personnel: true,
+    });
+
+    if (
+      !personnel ||
+      !service ||
+      !service.personnel?.map((p) => p.id).includes(personnel.id)
+    ) {
+      throw new BadRequestException();
+    }
+
+    const appointment = this.appointmentRepository.create({
+      ...rest,
+      ...rest,
+      personnel,
+      service,
+      customer,
+      company,
+    });
+
+    await this.appointmentRepository.save(appointment);
+
+    return plainToInstance(Appointment, appointment);
   }
 
   async seedAppointments(company: Company) {

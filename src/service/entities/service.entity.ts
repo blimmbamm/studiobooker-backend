@@ -34,6 +34,7 @@ export class Service {
   @Exclude()
   company?: Company;
 
+  @Exclude()
   @ManyToMany(() => Personnel, (personnel) => personnel.services, {
     onDelete: 'CASCADE',
   })

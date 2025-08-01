@@ -19,6 +19,7 @@ import { Company } from 'src/company/entities/company.entity';
 import { AddWorkingTimeToPersonnelDto } from './dto/add-working-time-to-personnel.dto';
 import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
 import { OptionalParseIntPipe } from 'src/common/pipes/optional-parse-int.pipe';
+import { StaffQueryDto } from './dto/staff-query.dto';
 
 @UseGuards(AuthGuard)
 @Controller('personnel')
@@ -36,12 +37,9 @@ export class PersonnelController {
   @Get()
   findAll(
     @UseCompany() company: Company,
-    @Query('serviceId', OptionalParseIntPipe) serviceId?: number,
+    @Query() staffQueryDto: StaffQueryDto,
   ) {
-    if (serviceId) {
-      return this.personnelService.findAllWithService(company, serviceId);
-    }
-    return this.personnelService.findAll(company);
+    return this.personnelService.findAllWithFilters(company, staffQueryDto);
   }
 
   @Get(':id')

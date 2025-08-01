@@ -58,7 +58,6 @@ export class ServiceCategoryController {
     @UseCompany() company: Company,
     @Query('activated', OptionalParseBoolPipe) activated?: boolean,
   ) {
-    console.log(activated);
     return this.serviceCategoryService.findAll(company, {
       services: { activated },
     });

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
-import { In, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from 'src/company/entities/company.entity';
@@ -18,6 +18,7 @@ import { WorkingTimeService } from 'src/working-time/working-time.service';
 import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
 import { ServiceCategoryService } from 'src/service-category/service-category.service';
 import { Service } from 'src/service/entities/service.entity';
+import { StaffQueryDto } from './dto/staff-query.dto';
 
 @Injectable()
 export class PersonnelService {
@@ -65,10 +66,9 @@ export class PersonnelService {
     }
   }
 
-  findAll(company: Company) {
+  findAll(company: Company, filter?: FindOptionsWhere<Personnel>) {
     return this.personnelRepository.find({
-      where: { company },
-      // relations: { services: true },
+      where: { company, ...filter },
     });
   }
 
@@ -79,6 +79,27 @@ export class PersonnelService {
       .where('personnel.companyId = :companyId', { companyId: company.id })
       .andWhere('service.id = :serviceId', { serviceId })
       .getMany();
+  }
+
+  findAllWithFilters(company: Company, query: StaffQueryDto) {
+    const qb = this.personnelRepository
+      .createQueryBuilder('personnel')
+      .where('personnel.companyId = :companyId', { companyId: company.id });
+
+    if (typeof query.activated === 'boolean') {
+      qb.andWhere('personnel.activated = :activated', {
+        activated: query.activated,
+      });
+    }
+
+    if (typeof query.serviceId === 'number') {
+      qb.leftJoin('personnel.services', 'service').andWhere(
+        'service.id = :serviceId',
+        { serviceId: query.serviceId },
+      );
+    }
+
+    return qb.getMany();
   }
 
   async findOne(id: number, company: Company) {

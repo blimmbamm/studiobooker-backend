@@ -65,10 +65,6 @@ export class ServiceCategoryService {
   }
 
   findAll(company: Company, filter?: FindOptionsWhere<ServiceCategory>) {
-    console.log( {
-      company,
-      ...filter
-    })
     return this.serviceCategoryRepository.find({
       where: {
         company,

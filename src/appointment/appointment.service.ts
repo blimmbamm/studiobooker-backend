@@ -54,6 +54,9 @@ export class AppointmentService {
       staff: [staffId],
     });
 
+    console.log(appointments)
+    console.log(service)
+
     // In fact, service.duration can be null, this is wrong in the entity
     return this._findAvailableSlots(
       appointments,

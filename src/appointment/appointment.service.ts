@@ -54,8 +54,8 @@ export class AppointmentService {
       staff: [staffId],
     });
 
-    console.log(appointments)
-    console.log(service)
+    console.log(appointments);
+    console.log(service);
 
     // In fact, service.duration can be null, this is wrong in the entity
     return this._findAvailableSlots(
@@ -190,8 +190,6 @@ export class AppointmentService {
     for (const row of appointments) {
       const dayKey = dayjs.tz(row.start, timezone).startOf('day').toISOString();
 
-      const { personnel, ...appointment } = row;
-
       if (!groupedByDay[dayKey][row.personnel!.id]) {
         groupedByDay[dayKey][row.personnel!.id] = {
           staff: row.personnel!,
@@ -200,7 +198,7 @@ export class AppointmentService {
       }
 
       groupedByDay[dayKey][row.personnel!.id].staff = row.personnel!;
-      groupedByDay[dayKey][row.personnel!.id].appointments.push(appointment);
+      groupedByDay[dayKey][row.personnel!.id].appointments.push(row);
     }
 
     const calendarDays: CalendarDay[] = Object.entries(groupedByDay).map(

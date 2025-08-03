@@ -1,11 +1,23 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Repository } from 'typeorm';
+import {
+  Between,
+  FilterOperations,
+  FindOperator,
+  FindOptionsWhere,
+  In,
+  Not,
+  Repository,
+} from 'typeorm';
 import * as dayjs from 'dayjs';
 import * as isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import * as timezone from 'dayjs/plugin/timezone';
 
-import { Appointment } from './entities/appointment.entity';
+import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Company } from 'src/company/entities/company.entity';
 import { AppointmentQueryDto } from './dto/appointment-query.dto';
 import { PersonnelService } from 'src/personnel/personnel.service';
@@ -20,6 +32,7 @@ import { CalendarDay } from './dto/calendar-day.dto';
 import { DummyAppointment } from './types/dummy-appointment';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { plainToInstance } from 'class-transformer';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(timezone);
@@ -54,10 +67,7 @@ export class AppointmentService {
       staff: [staffId],
     });
 
-    console.log(appointments);
-    console.log(service);
-
-    // In fact, service.duration can be null, this is wrong in the entity
+    // TODO: In fact, service.duration can be null, this is wrong in the entity
     return this._findAvailableSlots(
       appointments,
       service.personnel!,
@@ -156,15 +166,26 @@ export class AppointmentService {
 
   private async _findMany(
     company: Company,
-    query: { from: Date; to: Date; staff: number[] },
+    query: {
+      from: Date;
+      to: Date;
+      staff: number[];
+      includeCancelledAppointments?: boolean;
+    },
   ) {
-    const { staff, from, to } = query;
+    const { staff, from, to, includeCancelledAppointments } = query;
+
+    const statusFilter: FindOptionsWhere<Appointment> =
+      includeCancelledAppointments
+        ? {}
+        : { status: Not(AppointmentStatus.CANCELLED) };
 
     const appointments = await this.appointmentRepository.find({
       where: {
         company,
         personnel: { id: In(staff) },
         start: Between(from, to),
+        ...statusFilter,
       },
       relations: {
         personnel: true,
@@ -217,7 +238,8 @@ export class AppointmentService {
   }
 
   async findMany(company: Company, appointmentQueryDto: AppointmentQueryDto) {
-    const { staff, from, to } = appointmentQueryDto;
+    const { staff, from, to, includeCancelledAppointments } =
+      appointmentQueryDto;
     const timezone = 'Europe/Berlin'; // take from company information
 
     const fromDate = dayjs.tz(from, 'YYYYMMDD', timezone).startOf('day');
@@ -227,6 +249,7 @@ export class AppointmentService {
       from: fromDate.toDate(),
       to: toDate.toDate(),
       staff,
+      includeCancelledAppointments,
     });
   }
 
@@ -256,7 +279,7 @@ export class AppointmentService {
 
     const appointment = this.appointmentRepository.create({
       ...rest,
-      ...rest,
+      // status: rest.status ?? undefined,
       personnel,
       service,
       customer,
@@ -266,6 +289,36 @@ export class AppointmentService {
     await this.appointmentRepository.save(appointment);
 
     return plainToInstance(Appointment, appointment);
+  }
+
+  async updateAppointment(
+    company: Company,
+    id: number,
+    dto: UpdateAppointmentDto,
+  ) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { company, id },
+      relations: { personnel: true },
+    });
+
+    if (!appointment) throw new NotFoundException();
+
+    const updatedAppointment: Appointment = {
+      ...appointment,
+      ...dto,
+    };
+
+    return this.appointmentRepository.save(updatedAppointment);
+  }
+
+  async cancelAppointment(company: Company, id: number) {
+    const appointment = await this.updateAppointment(company, id, {
+      status: AppointmentStatus.CANCELLED,
+    });
+
+    // Email service...
+
+    return appointment;
   }
 
   async seedAppointments(company: Company) {

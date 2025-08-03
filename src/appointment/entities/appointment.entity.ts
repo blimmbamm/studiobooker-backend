@@ -4,6 +4,12 @@ import { Personnel } from 'src/personnel/entities/personnel.entity';
 import { Service } from 'src/service/entities/service.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
+export enum AppointmentStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+}
+
 @Entity()
 export class Appointment {
   @PrimaryGeneratedColumn()
@@ -15,8 +21,14 @@ export class Appointment {
   @Column()
   duration: number; // in minutes
 
-  @Column()
+  @Column({ default: false })
   confirmed: boolean;
+
+  @Column({
+    type: 'text',
+    default: AppointmentStatus.PENDING,
+  })
+  status: AppointmentStatus;
 
   /**
    * Short title of the appointment that could be

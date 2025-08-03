@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import * as dayjs from 'dayjs'; // has to stay like this
 import * as utc from 'dayjs/plugin/utc';
 import * as customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -30,4 +36,8 @@ export class AppointmentQueryDto {
   })
   @IsArray()
   staff: number[];
+
+  @IsOptional()
+  @IsBoolean()
+  includeCancelledAppointments?: boolean;
 }

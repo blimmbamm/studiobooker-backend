@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsDate,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -10,6 +11,7 @@ import {
   IsString,
   ValidateIf,
 } from 'class-validator';
+import { AppointmentStatus } from '../entities/appointment.entity';
 
 export class CreateAppointmentDto {
   @Transform(({ value }) => {
@@ -22,8 +24,12 @@ export class CreateAppointmentDto {
   @IsNumber()
   duration: number;
 
-  @IsBoolean()
-  confirmed: boolean;
+  // @IsBoolean()
+  // confirmed: boolean;
+
+  @IsOptional()
+  @IsEnum(AppointmentStatus)
+  status?: AppointmentStatus;
 
   @IsNotEmpty()
   @IsString()

@@ -77,4 +77,12 @@ export class AppointmentController {
   ) {
     return this.appointmentService.cancelAppointment(company, +id);
   }
+
+  @Patch('confirm/:id')
+  confirmAppointment(
+    @UseCompany() company: Company,
+    @Param('id', ParseIntPipe) id: string,
+  ) {
+    return this.appointmentService.confirmAppointment(company, +id);
+  }
 }

@@ -33,6 +33,7 @@ import { DummyAppointment } from './types/dummy-appointment';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { EmailService } from '../email/email.service';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(timezone);
@@ -45,6 +46,7 @@ export class AppointmentService {
 
     private readonly personnelService: PersonnelService,
     private readonly serviceService: ServiceService,
+    private readonly emailService: EmailService,
   ) {}
 
   async findAvailableSlots(
@@ -257,12 +259,7 @@ export class AppointmentService {
     company: Company,
     createAppointmentDto: CreateAppointmentDto,
   ) {
-    const {
-      serviceId,
-      staffId,
-      customerName: customer,
-      ...rest
-    } = createAppointmentDto;
+    const { serviceId, staffId, ...rest } = createAppointmentDto;
 
     const personnel = await this.personnelService.findOne(staffId, company);
     const service = await this.serviceService.findOne(serviceId, company, {
@@ -279,10 +276,8 @@ export class AppointmentService {
 
     const appointment = this.appointmentRepository.create({
       ...rest,
-      // status: rest.status ?? undefined,
       personnel,
       service,
-      customer,
       company,
     });
 
@@ -316,7 +311,30 @@ export class AppointmentService {
       status: AppointmentStatus.CANCELLED,
     });
 
-    // Email service...
+    if (appointment.customerEmail) {
+      await this.emailService.sendEmail(
+        appointment.customerEmail,
+        'Cancellation of your appointment',
+        `
+        We're very sorry, but we had to cancel your appointment.`,
+      );
+    }
+
+    return appointment;
+  }
+
+  async confirmAppointment(company: Company, id: number) {
+    const appointment = await this.updateAppointment(company, id, {
+      status: AppointmentStatus.CONFIRMED,
+    });
+
+    if (appointment.customerEmail) {
+      await this.emailService.sendEmail(
+        appointment.customerEmail,
+        'Confirmation',
+        `Your appointment was confirmed, see you soon!`,
+      );
+    }
 
     return appointment;
   }

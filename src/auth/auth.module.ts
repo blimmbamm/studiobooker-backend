@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../../constants';
 import { EmailService } from 'src/email/email.service';
 import { CompanyModule } from 'src/company/company.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -14,8 +15,9 @@ import { CompanyModule } from 'src/company/company.module';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '7d' },
     }),
+    EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService],
+  providers: [AuthService],
 })
 export class AuthModule {}

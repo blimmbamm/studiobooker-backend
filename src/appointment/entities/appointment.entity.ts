@@ -44,12 +44,18 @@ export class Appointment {
   notes: string | null;
 
   /**
-   * As for service, may be null if not related to a booked service.
+   * May be null if not related to a booked service.
    *
    * Later, this will be a relation to some separate customer entity.
    */
   @Column({ type: 'text', nullable: true })
   customer: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  customerName: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  customerEmail: string | null;
 
   @ManyToOne(() => Personnel) // inverse side?
   personnel?: Personnel;

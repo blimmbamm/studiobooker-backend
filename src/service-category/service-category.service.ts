@@ -14,7 +14,6 @@ import { ServiceCategory } from './entities/service-category.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
-import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { ServiceService } from 'src/service/service.service';
 
 @Injectable()

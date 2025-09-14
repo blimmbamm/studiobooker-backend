@@ -75,6 +75,24 @@ export class ServiceService {
     return service;
   }
 
+  // TODO: check this method vs. findAllWithService in personnel service
+  async findServicePersonnel(company: Company, serviceId: number) {
+    const service = await this.serviceRepository
+      .createQueryBuilder('service')
+      .leftJoinAndSelect(
+        'service.personnel',
+        'personnel',
+        'personnel.activated = true',
+      )
+      .where('service.companyId = :companyId', { companyId: company.id })
+      .andWhere('service.id = :serviceId', { serviceId })
+      .getOne();
+
+    if (!service) throw new NotFoundException();
+
+    return service.personnel;
+  }
+
   async findOneStructured(id: number, company: Company) {
     const service = await this.serviceRepository.findOne({
       where: { id, company },

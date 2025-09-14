@@ -18,6 +18,7 @@ import { WorkingTimeCompanySettingsModule } from './working-time-company-setting
 import { WorkingTimeCompanySetting } from './working-time-company-settings/entities/working-time-company-setting.entity';
 import { AppointmentModule } from './appointment/appointment.module';
 import { Appointment } from './appointment/entities/appointment.entity';
+import { PublicModule } from './public/public.module';
 
 const typeorm_config: SqliteConnectionOptions = {
   database: 'db',
@@ -45,6 +46,7 @@ const typeorm_config: SqliteConnectionOptions = {
     ServiceCategoryModule,
     WorkingTimeCompanySettingsModule,
     AppointmentModule,
+    PublicModule,
   ],
   controllers: [AppController],
   providers: [AppService],

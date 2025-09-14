@@ -16,3 +16,8 @@ export class AvailableSlotsQueryDto {
   @IsNumber()
   staffId: number;
 }
+
+export class AvailableSlotsQueryWithCompanyDto extends AvailableSlotsQueryDto {
+  @IsNumber()
+  companyId: number;
+}

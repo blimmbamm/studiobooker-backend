@@ -53,3 +53,8 @@ export class CreateAppointmentDto {
   @IsNumber()
   staffId: number;
 }
+
+export class CreateAppointmentWithCompanyDto extends CreateAppointmentDto {
+  @IsNumber()
+  companyId: number;
+}

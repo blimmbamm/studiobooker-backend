@@ -3,7 +3,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsRelations, Repository } from 'typeorm';
 import { CompanyInfoService } from 'src/company-info/company-info.service';
 import { WorkingTimeCompanySettingsService } from 'src/working-time-company-settings/working-time-company-settings.service';
 import { plainToInstance } from 'class-transformer';
@@ -32,7 +32,19 @@ export class CompanyService {
       relations: { companyInfo: true, workingTimeSettings: true },
     });
 
-    return plainToInstance(Company, company)
+    return plainToInstance(Company, company);
+  }
+
+  async findOneWithRelations(
+    id: number,
+    findOptionsRelations?: FindOptionsRelations<Company>,
+  ) {
+    const company = await this.companyRepository.findOne({
+      where: { id },
+      relations: findOptionsRelations,
+    });
+
+    return plainToInstance(Company, company);
   }
 
   findOneByMail(email: string) {
@@ -87,10 +99,10 @@ export class CompanyService {
     return `This action removes a #${id} company`;
   }
 
-  seedData(){
+  seedData() {
     /**
-     * Idea: 
-     * - create company and finalize it. 
+     * Idea:
+     * - create company and finalize it.
      * - add all relations (staff+appointments) to company, add cascade and save
      * - but: This would need unprotected endpoint, so must not go to company controller
      */

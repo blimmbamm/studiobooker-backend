@@ -21,8 +21,10 @@ export class CompanyInfoService {
     return `This action returns all companyInfo`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} companyInfo`;
+  getInfoByCompanyId(companyId: number) {
+    return this.companyInfoRepository.findOne({
+      where: { company: { id: companyId } },
+    });
   }
 
   async update(

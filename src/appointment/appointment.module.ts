@@ -18,5 +18,6 @@ import { EmailModule } from '../email/email.module';
   ],
   controllers: [AppointmentController],
   providers: [AppointmentService],
+  exports: [AppointmentService],
 })
 export class AppointmentModule {}

@@ -50,7 +50,7 @@ export class AuthService {
   }
 
   async verifySignUp(email: string, token: string) {
-    const company = await this.companyService.findOneByMail(email);
+    const company = await this.companyService.findByEmail(email);
 
     // Check several things that should lead to failure
     if (
@@ -74,7 +74,7 @@ export class AuthService {
   private tokenIsExpired() {}
 
   async signIn(email: string, password: string) {
-    const company = await this.companyService.findOneByMail(email);
+    const company = await this.companyService.findByEmail(email);
 
     if (!company) {
       throw new BadRequestException('Wrong credentials');

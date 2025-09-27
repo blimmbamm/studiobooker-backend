@@ -1,9 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CompanyService } from '../company/company.service';
 import { ServiceCategoryService } from '../service-category/service-category.service';
-import { CompanyInfoService } from '../company-info/company-info.service';
 import { ServiceService } from '../service/service.service';
-import { PersonnelService } from '../personnel/personnel.service';
 import { AvailableSlotsQueryWithCompanyDto } from '../appointment/dto/available-slots-query.dto';
 import { AppointmentService } from '../appointment/appointment.service';
 import { CreateAppointmentWithCompanyDto } from '../appointment/dto/create-appointment.dto';
@@ -18,13 +16,13 @@ export class PublicService {
   ) {}
 
   async findStudioStructured(companyId: number) {
-    const company = await this.companyService.findOneWithRelations(companyId, {
-      companyInfo: true,
-    });
-
-    if (!company) {
-      throw new NotFoundException();
-    }
+    const company =
+      await this.companyService.findByIdWithRelationsOrThrowNotFoundException(
+        companyId,
+        {
+          companyInfo: true,
+        },
+      );
 
     const { companyInfo } = company;
 
@@ -42,13 +40,9 @@ export class PublicService {
     companyId: number;
     serviceId: number;
   }) {
-    const company = await this.companyService.findOne(companyId);
+    const company =
+      await this.companyService.findByIdOrThrowNotFoundException(companyId);
 
-    if (!company) {
-      throw new NotFoundException();
-    }
-
-    // return this.personnelService.findAllWithService(company, serviceId);
     return this.serviceService.findServicePersonnel(company, serviceId);
   }
 
@@ -56,9 +50,8 @@ export class PublicService {
     companyId,
     ...dto
   }: AvailableSlotsQueryWithCompanyDto) {
-    const company = await this.companyService.findOne(companyId);
-
-    if (!company) throw new NotFoundException();
+    const company =
+      await this.companyService.findByIdOrThrowNotFoundException(companyId);
 
     return this.appointmentService.findAvailableSlots(company, dto);
   }
@@ -67,9 +60,8 @@ export class PublicService {
     companyId,
     ...dto
   }: CreateAppointmentWithCompanyDto) {
-    const company = await this.companyService.findOne(companyId);
-
-    if (!company) throw new NotFoundException();
+    const company =
+      await this.companyService.findByIdOrThrowNotFoundException(companyId);
 
     return this.appointmentService.createAppointment(company, dto);
   }

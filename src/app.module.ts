@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
@@ -48,7 +46,5 @@ const typeorm_config: SqliteConnectionOptions = {
     AppointmentModule,
     PublicModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

@@ -11,6 +11,12 @@ export class CompanyController {
 
   @Get()
   getCompany(@UseCompany() { id }: Company) {
-    return this.companyService.findOneWithInfoAndSettings(id);
+    return this.companyService.findByIdWithRelationsOrThrowNotFoundException(
+      id,
+      {
+        companyInfo: true,
+        workingTimeSettings: true,
+      },
+    );
   }
 }

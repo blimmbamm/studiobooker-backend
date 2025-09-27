@@ -3,7 +3,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../../constants';
-import { EmailService } from 'src/email/email.service';
 import { CompanyModule } from 'src/company/company.module';
 import { EmailModule } from '../email/email.module';
 

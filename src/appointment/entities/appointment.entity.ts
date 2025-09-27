@@ -57,7 +57,7 @@ export class Appointment {
   @Column({ type: 'text', nullable: true })
   customerEmail: string | null;
 
-  @ManyToOne(() => Personnel) // inverse side?
+  @ManyToOne(() => Personnel, { onDelete: 'CASCADE' }) // inverse side?
   personnel?: Personnel;
 
   /**

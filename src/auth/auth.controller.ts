@@ -46,8 +46,6 @@ export class AuthController {
     @Body() signInDto: SignInDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // return this.authService.signIn(signInDto.email, signInDto.password);
-
     const token = await this.authService.signIn(
       signInDto.email,
       signInDto.password,
@@ -75,7 +73,6 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('check')
   checkAuth(@UseCompany() company: Company) {
-    // return { id: company.id, email: company.email };
-    return { message: 'success' };
+    return { message: 'success', id: company.id };
   }
 }

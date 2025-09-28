@@ -3,12 +3,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
-import {
-  FindOneOptions,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  Repository,
-} from 'typeorm';
+import { FindOneOptions, FindOptionsRelations, Repository } from 'typeorm';
 import { CompanyInfoService } from 'src/company-info/company-info.service';
 import { WorkingTimeCompanySettingsService } from 'src/working-time-company-settings/working-time-company-settings.service';
 import { plainToInstance } from 'class-transformer';
@@ -35,7 +30,9 @@ export class CompanyService {
   //   return company;
   // }
 
-  async findOneOrThrowNotFoundException(options: FindOneOptions<Company>) {
+  private async findOneOrThrowNotFoundException(
+    options: FindOneOptions<Company>,
+  ) {
     const company = await this.companyRepository.findOne(options);
 
     if (!company) throw new NotFoundException();
@@ -43,19 +40,15 @@ export class CompanyService {
     return plainToInstance(Company, company);
   }
 
-  async findByIdOrThrowNotFoundException(id: number) {
+  findByIdOrThrowNotFoundException(id: number) {
     return this.findOneOrThrowNotFoundException({ where: { id } });
   }
 
-  findOne(options: FindOneOptions<Company>) {
-    return this.companyRepository.findOne(options);
-  }
-
   findById(id: number) {
-    return this.findOne({ where: { id } });
+    return this.companyRepository.findOne({ where: { id } });
   }
 
-  async findByIdWithRelationsOrThrowNotFoundException(
+  findByIdWithRelationsOrThrowNotFoundException(
     id: number,
     findOptionsRelations?: FindOptionsRelations<Company>,
   ) {
@@ -90,13 +83,13 @@ export class CompanyService {
    *
    * Set verified flag, add company info and settings entities.
    */
-  async finishCompanyInitialization(id: number) {
+  async finishCompanyInitialization(id: number, timezone: string) {
     const company = await this.findByIdOrThrowNotFoundException(id);
 
     company.verified = true;
     company.hashedVerificationToken = null;
     company.verificationTokenExpiresAt = null;
-    company.companyInfo = this.companyInfoService.create();
+    company.companyInfo = this.companyInfoService.create(timezone);
     company.workingTimeSettings =
       this.workingTimeCompanySettingsService.create();
 

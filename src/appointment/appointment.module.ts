@@ -3,15 +3,17 @@ import { AppointmentService } from './appointment.service';
 import { AppointmentController } from './appointment.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
-import { CompanyModule } from 'src/company/company.module';
 import { PersonnelModule } from 'src/personnel/personnel.module';
 import { ServiceModule } from 'src/service/service.module';
 import { EmailModule } from '../email/email.module';
+import { CompanyInfoModule } from '../company-info/company-info.module';
+import { CompanyModule } from '../company/company.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment]),
     CompanyModule,
+    CompanyInfoModule,
     PersonnelModule,
     ServiceModule,
     EmailModule,

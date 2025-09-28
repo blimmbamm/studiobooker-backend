@@ -16,9 +16,6 @@ import { UpdatePersonnelDto } from './dto/update-personnel.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseCompany } from 'src/auth/auth.decorator';
 import { Company } from 'src/company/entities/company.entity';
-import { AddWorkingTimeToPersonnelDto } from './dto/add-working-time-to-personnel.dto';
-import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
-import { OptionalParseIntPipe } from 'src/common/pipes/optional-parse-int.pipe';
 import { StaffQueryDto } from './dto/staff-query.dto';
 
 @UseGuards(AuthGuard)
@@ -47,7 +44,7 @@ export class PersonnelController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.personnelService.findOneStructured(+id, company);
+    return this.personnelService.findOneStructured(company, +id);
   }
 
   @Patch(':id')
@@ -56,7 +53,7 @@ export class PersonnelController {
     @Param('id', ParseIntPipe) id: string,
     @Body() updatePersonnelDto: UpdatePersonnelDto,
   ) {
-    return this.personnelService.update(+id, company, updatePersonnelDto);
+    return this.personnelService.update(company, +id, updatePersonnelDto);
   }
 
   @Delete(':id')
@@ -64,7 +61,7 @@ export class PersonnelController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.personnelService.remove(+id, company);
+    return this.personnelService.remove(company, +id);
   }
 
   // @Post(':id/working-time')

@@ -10,11 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { FindOptionsRelations, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { PersonnelService } from 'src/personnel/personnel.service';
 import { ServiceCategoryService } from 'src/service-category/service-category.service';
+import { FindOneOptionsWithoutCompany } from '../common/types/find-one-options';
 
 @Injectable()
 export class ServiceService {
@@ -24,16 +25,18 @@ export class ServiceService {
     @Inject(forwardRef(() => PersonnelService))
     private personnelService: PersonnelService,
 
+    @Inject(forwardRef(() => ServiceCategoryService))
     private serviceCategoryService: ServiceCategoryService,
   ) {}
 
   async create(company: Company, createServiceDto: CreateServiceDto) {
     const { serviceCategoryId, ...dto } = createServiceDto;
 
-    const serviceCategory = await this.serviceCategoryService.findOne(
-      company,
-      createServiceDto.serviceCategoryId,
-    );
+    const serviceCategory =
+      await this.serviceCategoryService.findByIdOrThrowNotFoundException(
+        company,
+        createServiceDto.serviceCategoryId,
+      );
 
     const newService = this.serviceRepository.create({
       company,
@@ -53,21 +56,13 @@ export class ServiceService {
     });
   }
 
-  findOne(
-    id: number,
+  async findOneOrThrowNotFoundException(
     company: Company,
-    relations?: FindOptionsRelations<Service>,
+    options: FindOneOptionsWithoutCompany<Service>,
   ) {
-    return this.serviceRepository.findOne({
-      where: { id, company },
-      relations,
-    });
-  }
-
-  async findOneByPersonnel(company: Company, id: number, staffId: number) {
     const service = await this.serviceRepository.findOne({
-      where: { id, company, personnel: { id: staffId } },
-      relations: { personnel: { workingTimes: true } },
+      ...options,
+      where: { company, ...options.where },
     });
 
     if (!service) throw new NotFoundException();
@@ -75,35 +70,23 @@ export class ServiceService {
     return service;
   }
 
-  // TODO: check this method vs. findAllWithService in personnel service
-  async findServicePersonnel(company: Company, serviceId: number) {
-    const service = await this.serviceRepository
-      .createQueryBuilder('service')
-      .leftJoinAndSelect(
-        'service.personnel',
-        'personnel',
-        'personnel.activated = true',
-      )
-      .where('service.companyId = :companyId', { companyId: company.id })
-      .andWhere('service.id = :serviceId', { serviceId })
-      .getOne();
-
-    if (!service) throw new NotFoundException();
-
-    return service.personnel;
+  async findOneByPersonnel(company: Company, id: number, staffId: number) {
+    return this.findOneOrThrowNotFoundException(company, {
+      where: { id, personnel: { id: staffId } },
+      relations: { personnel: { workingTimes: true } },
+    });
   }
 
-  async findOneStructured(id: number, company: Company) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+  async findOneStructured(company: Company, id: number) {
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
       relations: { personnel: true, serviceCategory: true },
     });
 
-    if (!service) {
-      throw new NotFoundException();
-    }
-
-    const personnel = await this.personnelService.findAll(company);
+    const personnel = await this.personnelService.findAllWithFilters(
+      company,
+      {},
+    );
 
     const { personnel: servicePersonnel, ...other } = service;
 
@@ -119,17 +102,13 @@ export class ServiceService {
   }
 
   async update(
-    id: number,
     company: Company,
+    id: number,
     updateServiceDto: UpdateServiceDto,
   ) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
     });
-
-    if (!service) {
-      throw new NotFoundException();
-    }
 
     const updatedService = { ...service, ...updateServiceDto };
 
@@ -144,24 +123,20 @@ export class ServiceService {
     return this.serviceRepository.save(updatedService);
   }
 
-  async updateCategory(
+  async updateCategoryForService(
+    company: Company,
     id: number,
     serviceCategoryId: number,
-    company: Company,
   ) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
     });
 
-    if (!service) {
-      throw new NotFoundException();
-    }
-
-    const serviceCategory = await this.serviceCategoryService.findOne(
-      company,
-      serviceCategoryId,
-    );
-    // Failure is handled inside serviceCategoryService.findOne, however this is not quite consistent
+    const serviceCategory =
+      await this.serviceCategoryService.findByIdOrThrowNotFoundException(
+        company,
+        serviceCategoryId,
+      );
 
     const updatedService: Service = { ...service, serviceCategory };
 
@@ -174,30 +149,21 @@ export class ServiceService {
     id: number,
     personnelId: number,
   ) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
       relations: { personnel: true },
     });
 
-    if (!service) {
-      throw new NotFoundException('Service not found');
-    }
-
-    // Since personnel relation gets loaded, it should be defined in the following,
-    // but unsure if using ! instead of ? would be more correct
-    const personnelAlreadyAdded = service.personnel!.some(
+    const personnelAlreadyAdded = service.personnel?.some(
       (p) => p.id === personnelId,
     );
 
-    if (!personnelAlreadyAdded) {
-      const personnel = await this.personnelService.findOne(
-        personnelId,
-        company,
-      );
-
-      if (!personnel) {
-        throw new NotFoundException('Personnel not found');
-      }
+    if (service.personnel && !personnelAlreadyAdded) {
+      const personnel =
+        await this.personnelService.findByIdOrThrowNotFoundException(
+          company,
+          personnelId,
+        );
 
       service.personnel?.push(personnel);
 
@@ -212,14 +178,10 @@ export class ServiceService {
     id: number,
     personnelId: number,
   ) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
       relations: { personnel: true },
     });
-
-    if (!service) {
-      throw new NotFoundException('Service not found');
-    }
 
     if (service.personnel) {
       service.personnel = service.personnel.filter((p) => p.id !== personnelId);
@@ -228,15 +190,11 @@ export class ServiceService {
     return this.serviceRepository.save(service);
   }
 
-  async remove(id: number, company: Company) {
-    const service = await this.serviceRepository.findOne({
-      where: { id, company },
+  async remove(company: Company, id: number) {
+    const service = await this.findOneOrThrowNotFoundException(company, {
+      where: { id },
     });
 
-    if (service) {
-      return this.serviceRepository.remove(service);
-    } else {
-      throw new NotFoundException();
-    }
+    return this.serviceRepository.remove(service);
   }
 }

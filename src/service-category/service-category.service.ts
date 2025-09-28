@@ -15,6 +15,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
 import { ServiceService } from 'src/service/service.service';
+import { FindOneOptionsWithoutCompany } from '../common/types/find-one-options';
 
 @Injectable()
 export class ServiceCategoryService {
@@ -73,10 +74,22 @@ export class ServiceCategoryService {
     });
   }
 
-  findOne(company: Company, id: number) {
-    return this.serviceCategoryRepository.findOneOrFail({
-      where: { company, id },
+  async findOneOrThrowNotFoundException(
+    company: Company,
+    options: FindOneOptionsWithoutCompany<ServiceCategory>,
+  ) {
+    const category = await this.serviceCategoryRepository.findOne({
+      ...options,
+      where: { company, ...options.where },
     });
+
+    if (!category) throw new NotFoundException();
+
+    return category;
+  }
+
+  findByIdOrThrowNotFoundException(company: Company, id: number) {
+    return this.findOneOrThrowNotFoundException(company, { where: { id } });
   }
 
   async update(
@@ -84,13 +97,7 @@ export class ServiceCategoryService {
     id: number,
     updateServiceCategoryDto: UpdateServiceCategoryDto,
   ) {
-    const category = await this.serviceCategoryRepository.findOne({
-      where: { id, company },
-    });
-
-    if (!category) {
-      throw new NotFoundException();
-    }
+    const category = await this.findByIdOrThrowNotFoundException(company, id);
 
     const updatedCategory = { ...category, ...updateServiceCategoryDto };
 
@@ -98,14 +105,8 @@ export class ServiceCategoryService {
   }
 
   async remove(company: Company, id: number) {
-    const category = await this.serviceCategoryRepository.findOne({
-      where: { id, company },
-    });
+    const category = await this.findByIdOrThrowNotFoundException(company, id);
 
-    if (category) {
-      return this.serviceCategoryRepository.remove(category);
-    } else {
-      throw new NotFoundException();
-    }
+    return this.serviceCategoryRepository.remove(category);
   }
 }

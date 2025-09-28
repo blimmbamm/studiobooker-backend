@@ -39,7 +39,7 @@ export class ServiceController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.serviceService.findOneStructured(+id, company);
+    return this.serviceService.findOneStructured(company, +id);
   }
 
   @Patch(':id')
@@ -48,7 +48,7 @@ export class ServiceController {
     @Param('id', ParseIntPipe) id: string,
     @Body() updateServiceDto: UpdateServiceDto,
   ) {
-    return this.serviceService.update(+id, company, updateServiceDto);
+    return this.serviceService.update(company, +id, updateServiceDto);
   }
 
   @Patch(':id/category/:categoryId')
@@ -57,7 +57,11 @@ export class ServiceController {
     @Param('id', ParseIntPipe) id: string,
     @Param('categoryId', ParseIntPipe) categoryId: string,
   ) {
-    return this.serviceService.updateCategory(+id, +categoryId, company);
+    return this.serviceService.updateCategoryForService(
+      company,
+      +id,
+      +categoryId,
+    );
   }
 
   @Delete(':id')
@@ -65,7 +69,7 @@ export class ServiceController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.serviceService.remove(+id, company);
+    return this.serviceService.remove(company, +id);
   }
 
   @Post(':id/personnel/:personnelId')
@@ -74,9 +78,6 @@ export class ServiceController {
     @Param('id', ParseIntPipe) id: string,
     @Param('personnelId', ParseIntPipe) personnelId: string,
   ) {
-    // Find service with id
-    // check if personnelId is already in array of personnel
-    // Insert if not
     return this.serviceService.addPersonnelToService(
       company,
       +id,

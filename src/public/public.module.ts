@@ -3,14 +3,14 @@ import { CompanyModule } from '../company/company.module';
 import { ServiceCategoryModule } from '../service-category/service-category.module';
 import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
-import { ServiceModule } from '../service/service.module';
 import { AppointmentModule } from '../appointment/appointment.module';
+import { PersonnelModule } from '../personnel/personnel.module';
 
 @Module({
   imports: [
     CompanyModule,
     ServiceCategoryModule,
-    ServiceModule,
+    PersonnelModule,
     AppointmentModule,
   ],
   controllers: [PublicController],

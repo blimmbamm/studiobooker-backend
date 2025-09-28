@@ -12,7 +12,7 @@ import { ServiceCategoryModule } from 'src/service-category/service-category.mod
     TypeOrmModule.forFeature([Service]),
     CompanyModule,
     forwardRef(() => PersonnelModule),
-    ServiceCategoryModule,
+    forwardRef(() => ServiceCategoryModule),
   ],
   controllers: [ServiceController],
   providers: [ServiceService],

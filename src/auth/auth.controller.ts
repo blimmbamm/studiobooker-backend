@@ -35,6 +35,7 @@ export class AuthController {
     await this.authService.verifySignUp(
       verifySignUpDto.email,
       verifySignUpDto.token,
+      verifySignUpDto.timezone,
     );
 
     return { message: 'success' };

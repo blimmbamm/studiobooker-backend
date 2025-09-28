@@ -1,4 +1,4 @@
-import { IsEmail, IsString } from "class-validator";
+import { IsEmail, IsString } from 'class-validator';
 
 export class VerifySignUpDto {
   @IsEmail()
@@ -6,4 +6,7 @@ export class VerifySignUpDto {
 
   @IsString()
   token: string;
+
+  @IsString()
+  timezone: string;
 }

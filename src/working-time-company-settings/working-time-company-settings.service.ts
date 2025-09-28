@@ -12,7 +12,7 @@ export class WorkingTimeCompanySettingsService {
     private workingTimeCompanySettingRepository: Repository<WorkingTimeCompanySetting>,
   ) {}
 
-  async getSettings(company: Company): Promise<WorkingTimeCompanySetting[]> {
+  async getSettings(company: Company) {
     return this.workingTimeCompanySettingRepository.find({
       where: { company },
     });
@@ -33,18 +33,9 @@ export class WorkingTimeCompanySettingsService {
         weekday,
         start: '09:00',
         end: '17:00',
-        // activated: weekday === 'Saturday' || weekday === 'Sunday' ? false : true,
         activated: true, // for now, this isn't used
       })),
     );
-  }
-
-  findAll() {
-    return `This action returns all workingTimeCompanySettings`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} workingTimeCompanySetting`;
   }
 
   async update(

@@ -9,10 +9,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { PublicService } from './public.service';
-import {
-  AvailableSlotsQueryDto,
-  AvailableSlotsQueryWithCompanyDto,
-} from '../appointment/dto/available-slots-query.dto';
+import { AvailableSlotsQueryWithCompanyDto } from '../appointment/dto/available-slots-query.dto';
 import { CreateAppointmentWithCompanyDto } from '../appointment/dto/create-appointment.dto';
 
 @Controller('public')

@@ -4,15 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Between,
-  FilterOperations,
-  FindOperator,
-  FindOptionsWhere,
-  In,
-  Not,
-  Repository,
-} from 'typeorm';
+import { Between, FindOptionsWhere, In, Not, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
 import * as isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import * as timezone from 'dayjs/plugin/timezone';
@@ -34,6 +26,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { EmailService } from '../email/email.service';
+import { CompanyInfoService } from '../company-info/company-info.service';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(timezone);
@@ -44,6 +37,7 @@ export class AppointmentService {
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
 
+    private readonly companyInfoService: CompanyInfoService,
     private readonly personnelService: PersonnelService,
     private readonly serviceService: ServiceService,
     private readonly emailService: EmailService,
@@ -61,11 +55,14 @@ export class AppointmentService {
       staffId,
     );
 
+    const timezone = await this.companyInfoService.getTimezone(company);
+
     const end = dayjs(start).add(5, 'days').subtract(1, 'millisecond').toDate();
 
     const appointments = await this._findMany(company, {
       from: start,
       to: end,
+      timezone,
       staff: [staffId],
     });
 
@@ -75,6 +72,7 @@ export class AppointmentService {
       service.personnel!,
       service.duration,
       10,
+      timezone,
     );
   }
 
@@ -83,6 +81,7 @@ export class AppointmentService {
     staff: Personnel[],
     serviceDuration: number, // e.g. 60
     slotStep: number = 5, // e.g. 5-minute grid
+    timezone: string,
   ): AvailableAppointmentSlots[] {
     const weekdayMap = [
       'Sunday',
@@ -99,7 +98,6 @@ export class AppointmentService {
     for (const { date, staffWithAppointments } of data) {
       const day = dayjs(date);
 
-      const timezone = 'Europe/Berlin'; // add this to company information
       const dayNumber = day.tz(timezone).day();
 
       const weekday = weekdayMap[dayNumber];
@@ -171,6 +169,7 @@ export class AppointmentService {
     query: {
       from: Date;
       to: Date;
+      timezone: string;
       staff: number[];
       includeCancelledAppointments?: boolean;
     },
@@ -208,7 +207,7 @@ export class AppointmentService {
       groupedByDay[currentDay] = {};
     }
 
-    const timezone = 'Europe/Berlin'; // company setting
+    const timezone = query.timezone;
 
     for (const row of appointments) {
       const dayKey = dayjs.tz(row.start, timezone).startOf('day').toISOString();
@@ -242,7 +241,8 @@ export class AppointmentService {
   async findMany(company: Company, appointmentQueryDto: AppointmentQueryDto) {
     const { staff, from, to, includeCancelledAppointments } =
       appointmentQueryDto;
-    const timezone = 'Europe/Berlin'; // take from company information
+
+    const timezone = await this.companyInfoService.getTimezone(company);
 
     const fromDate = dayjs.tz(from, 'YYYYMMDD', timezone).startOf('day');
     const toDate = dayjs.tz(to, 'YYYYMMDD', timezone).endOf('day');
@@ -250,6 +250,7 @@ export class AppointmentService {
     return this._findMany(company, {
       from: fromDate.toDate(),
       to: toDate.toDate(),
+      timezone,
       staff,
       includeCancelledAppointments,
     });
@@ -261,16 +262,19 @@ export class AppointmentService {
   ) {
     const { serviceId, staffId, ...rest } = createAppointmentDto;
 
-    const personnel = await this.personnelService.findOne(staffId, company);
-    const service = await this.serviceService.findOne(serviceId, company, {
-      personnel: true,
-    });
+    const personnel =
+      await this.personnelService.findByIdOrThrowNotFoundException(
+        company,
+        staffId,
+      );
 
-    if (
-      !personnel ||
-      !service ||
-      !service.personnel?.map((p) => p.id).includes(personnel.id)
-    ) {
+    const service = await this.serviceService.findOneOrThrowNotFoundException(
+      company,
+      { where: { id: serviceId }, relations: { personnel: true } },
+    );
+
+    // BadRequest if personnel is not part of the service's personnel
+    if (!service.personnel?.map((p) => p.id).includes(personnel.id)) {
       throw new BadRequestException();
     }
 

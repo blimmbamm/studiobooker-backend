@@ -12,6 +12,9 @@ export class CompanyInfo {
   @Column({ type: String, nullable: true })
   description: string | null;
 
+  @Column()
+  timezone: string;
+
   @OneToOne(() => Company, (company) => company.companyInfo)
   company?: Company;
 }

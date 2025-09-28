@@ -9,7 +9,6 @@ import {
   UseGuards,
   ParseIntPipe,
   Query,
-  ParseBoolPipe,
 } from '@nestjs/common';
 import { ServiceCategoryService } from './service-category.service';
 import {
@@ -68,7 +67,10 @@ export class ServiceCategoryController {
     @UseCompany() company: Company,
     @Param('id', ParseIntPipe) id: string,
   ) {
-    return this.serviceCategoryService.findOne(company, +id);
+    return this.serviceCategoryService.findByIdOrThrowNotFoundException(
+      company,
+      +id,
+    );
   }
 
   @Patch(':id')

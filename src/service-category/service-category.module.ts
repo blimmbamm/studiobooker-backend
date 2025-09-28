@@ -10,7 +10,8 @@ import { ServiceModule } from 'src/service/service.module';
   imports: [
     TypeOrmModule.forFeature([ServiceCategory]),
     CompanyModule,
-    forwardRef(() => ServiceModule),
+    // forwardRef(() => ServiceModule),
+    ServiceModule,
   ],
   controllers: [ServiceCategoryController],
   providers: [ServiceCategoryService],

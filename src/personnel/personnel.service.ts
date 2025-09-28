@@ -1,23 +1,17 @@
 import {
   ConflictException,
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
-import { FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from 'src/company/entities/company.entity';
 import { plainToInstance } from 'class-transformer';
-import { ServiceService } from 'src/service/service.service';
 import { WorkingTimeService } from 'src/working-time/working-time.service';
-import { UpdateWorkingTimeForPersonnelDto } from './dto/update-working-time-for-personnel.dto';
 import { ServiceCategoryService } from 'src/service-category/service-category.service';
-import { Service } from 'src/service/entities/service.entity';
 import { StaffQueryDto } from './dto/staff-query.dto';
 
 @Injectable()
@@ -25,9 +19,6 @@ export class PersonnelService {
   constructor(
     @InjectRepository(Personnel)
     private personnelRepository: Repository<Personnel>,
-
-    @Inject(forwardRef(() => ServiceService))
-    private serviceService: ServiceService,
 
     private serviceCategoryService: ServiceCategoryService,
     private workingTimeService: WorkingTimeService,
@@ -66,21 +57,6 @@ export class PersonnelService {
     }
   }
 
-  findAll(company: Company, filter?: FindOptionsWhere<Personnel>) {
-    return this.personnelRepository.find({
-      where: { company, ...filter },
-    });
-  }
-
-  findAllWithService(company: Company, serviceId: number) {
-    return this.personnelRepository
-      .createQueryBuilder('personnel')
-      .leftJoin('personnel.services', 'service')
-      .where('personnel.companyId = :companyId', { companyId: company.id })
-      .andWhere('service.id = :serviceId', { serviceId })
-      .getMany();
-  }
-
   findAllWithFilters(company: Company, query: StaffQueryDto) {
     const qb = this.personnelRepository
       .createQueryBuilder('personnel')
@@ -102,19 +78,12 @@ export class PersonnelService {
     return qb.getMany();
   }
 
-  async findOne(id: number, company: Company) {
-    return this.personnelRepository.findOne({
-      where: { id, company },
-    });
-  }
-
-  async findOneStructured(id: number, company: Company) {
+  async findOneStructured(company: Company, id: number) {
     /**
-     * Load personnel with only services, no nested service categories
-     * Load all service categories with service nested
-     * Add
+     * This query could be simplified by just using the standard repository methods.
+     * The purpose of this query was to also filter on enabled workingTimeCompanySettings.
+     * Let's keep it for later...
      */
-
     const personnel = await this.personnelRepository
       .createQueryBuilder('personnel')
       .where('personnel.id = :id', { id })
@@ -129,43 +98,6 @@ export class PersonnelService {
       //   enabled: true,
       // })
       .getOne();
-
-    // This could be used to filter on personnel first before join related data:
-    // const fiteredPersonnelQuery = await this.personnelRepository
-    //   .createQueryBuilder('personnel')
-    //   .innerJoin(
-    //     (qb) =>
-    //       qb
-    //         .subQuery()
-    //         .select('p.id', 'id')
-    //         .from(Personnel, 'p')
-    //         .where('p.id = :id', { id })
-    //         .andWhere('p.companyId = :companyId', { companyId: company.id }),
-    //     'filteredPersonnel',
-    //     'filteredPersonnel.id = personnel.id',
-    //   )
-    //   .leftJoinAndSelect(...)
-
-    // This would also work but needs workingTimes to exist, otherwise no entity is found
-    // This means that using services for the innerjoin would not work
-    // const filteredPersonnelQuery2 = await this.personnelRepository
-    //   .createQueryBuilder('personnel')
-    //   .innerJoinAndSelect(
-    //     'personnel.workingTimes',
-    //     'workingTimes',
-    //     '(personnel.id = :id) and (personnel.companyId = :companyId)',
-    //     { id, companyId: company.id },
-    //   )
-    //   .leftJoinAndSelect(...)
-
-    // Yet another way could be to use RelationQueryBuilder
-    // Load personnel first then get related data, put everything together in here
-
-    // Old way:
-    // const personnel = await this.personnelRepository.findOne({
-    //   where: { id, company },
-    //   relations: { services: true, workingTimes: true },
-    // });
 
     if (personnel) {
       const serviceCategories = (
@@ -190,17 +122,13 @@ export class PersonnelService {
         serviceCategories,
       };
     } else {
-      // This is unprecise: the query above requires working times
-      // and working times company settings to be present --> more granular error handling?!
+      // If working times are again added to the query,
+      // the error handling could/should be a little more granular
       throw new NotFoundException();
     }
   }
 
-  async update(
-    id: number,
-    company: Company,
-    updatePersonnelDto: UpdatePersonnelDto,
-  ): Promise<Personnel> {
+  async findByIdOrThrowNotFoundException(company: Company, id: number) {
     const personnel = await this.personnelRepository.findOne({
       where: { id, company },
     });
@@ -209,20 +137,24 @@ export class PersonnelService {
       throw new NotFoundException();
     }
 
+    return personnel;
+  }
+
+  async update(
+    company: Company,
+    id: number,
+    updatePersonnelDto: UpdatePersonnelDto,
+  ): Promise<Personnel> {
+    const personnel = await this.findByIdOrThrowNotFoundException(company, id);
+
     const updatedPersonnel = { ...personnel, ...updatePersonnelDto };
 
     return this.personnelRepository.save(updatedPersonnel);
   }
 
-  async remove(id: number, company: Company) {
-    const personnel = await this.personnelRepository.findOne({
-      where: { id, company },
-    });
+  async remove(company: Company, id: number) {
+    const personnel = await this.findByIdOrThrowNotFoundException(company, id);
 
-    if (personnel) {
-      return this.personnelRepository.remove(personnel);
-    } else {
-      throw new NotFoundException();
-    }
+    return this.personnelRepository.remove(personnel);
   }
 }

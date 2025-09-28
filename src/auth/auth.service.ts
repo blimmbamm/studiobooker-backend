@@ -49,7 +49,7 @@ export class AuthService {
     );
   }
 
-  async verifySignUp(email: string, token: string) {
+  async verifySignUp(email: string, token: string, timezone: string) {
     const company = await this.companyService.findByEmail(email);
 
     // Check several things that should lead to failure
@@ -65,7 +65,7 @@ export class AuthService {
     // Check token equality
     if (compareSync(token, company.hashedVerificationToken)) {
       // If token is correct update company and insert settings etc.
-      this.companyService.finishCompanyInitialization(company.id);
+      this.companyService.finishCompanyInitialization(company.id, timezone);
     } else {
       throw new BadRequestException('Invalid token');
     }

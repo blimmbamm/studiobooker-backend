@@ -1,16 +1,15 @@
 import {
   CanActivate,
   ExecutionContext,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '../../constants';
 import { Request } from 'express';
 import { JwtPayload } from './auth.service';
 import { CompanyService } from 'src/company/company.service';
 import { Company } from 'src/company/entities/company.entity';
+import { ConfigService } from '@nestjs/config';
 
 export interface AuthenticatedRequest extends Request {
   company: Company;
@@ -21,6 +20,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private companyService: CompanyService,
+    private configService: ConfigService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: jwtConstants.secret,
+        secret: this.configService.get<string>('JWT_SECRET'),
       });
 
       // Find company based on token payload

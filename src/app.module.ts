@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
 import { Company } from './company/entities/company.entity';
 import { PersonnelModule } from './personnel/personnel.module';
 import { Personnel } from './personnel/entities/personnel.entity';
@@ -19,28 +18,36 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { Appointment } from './appointment/entities/appointment.entity';
 import { PublicModule } from './public/public.module';
 
-const typeorm_config: SqliteConnectionOptions = {
-  database: 'db',
-  type: 'sqlite',
-  synchronize: true,
-  entities: [
-    Company,
-    Personnel,
-    Service,
-    ServiceCategory,
-    CompanyInfo,
-    WorkingTime,
-    WorkingTimeCompanySetting,
-    Appointment,
-  ],
-};
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `env.${process.env.NODE_ENV || 'development'}`,
     }),
-    TypeOrmModule.forRoot(typeorm_config),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const isProd = configService.get('NODE_ENV') === 'production';
+
+        return {
+          type: 'postgres',
+          url: configService.get<string>('DATABASE_URL'),
+          synchronize: true,
+          extra: isProd ? { ssl: { rejectUnauthorized: false } } : undefined,
+          entities: [
+            Company,
+            Personnel,
+            Service,
+            ServiceCategory,
+            CompanyInfo,
+            WorkingTime,
+            WorkingTimeCompanySetting,
+            Appointment,
+          ],
+        };
+      },
+    }),
     AuthModule,
     PersonnelModule,
     ServiceCategoryModule,

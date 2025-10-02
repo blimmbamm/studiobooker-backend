@@ -1,21 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { createTransport } from 'nodemailer';
+import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter = createTransport({
-    host: 'localhost', // SMTP4DEV hostname
-    port: 2525, // SMTP4DEV port
-    secure: false, // No TLS for local development
-    // auth: {},
-  });
+  private readonly resend: Resend;
+  private readonly fromMail: string;
+
+  constructor(private config: ConfigService) {
+    this.resend = new Resend(this.config.get<string>('RESEND_API_KEY'));
+    this.fromMail = this.config.get<string>('FROM_MAIL') || '';
+  }
 
   async sendEmail(to: string, subject: string, text: string) {
-    this.transporter.sendMail({
-      from: '"No Reply" <noreply@example.com>',
+    this.resend.emails.send({
+      from: this.fromMail,
       to,
       subject,
-      text,
+      html: text,
     });
   }
 }

@@ -7,7 +7,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
  *
  * Maybe this could extend the other working time entity?!
  */
-@Entity()
+@Entity({ orderBy: { id: 'ASC' } })
 export class WorkingTimeCompanySetting {
   @PrimaryGeneratedColumn()
   id: number;

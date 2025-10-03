@@ -3,7 +3,12 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
-import { FindOneOptions, FindOptionsRelations, Repository } from 'typeorm';
+import {
+  FindOneOptions,
+  FindOptionsOrder,
+  FindOptionsRelations,
+  Repository,
+} from 'typeorm';
 import { CompanyInfoService } from 'src/company-info/company-info.service';
 import { WorkingTimeCompanySettingsService } from 'src/working-time-company-settings/working-time-company-settings.service';
 import { plainToInstance } from 'class-transformer';
@@ -51,10 +56,12 @@ export class CompanyService {
   findByIdWithRelationsOrThrowNotFoundException(
     id: number,
     findOptionsRelations?: FindOptionsRelations<Company>,
+    findOptionsOrder?: FindOptionsOrder<Company>,
   ) {
     return this.findOneOrThrowNotFoundException({
       where: { id },
       relations: findOptionsRelations,
+      order: findOptionsOrder,
     });
   }
 

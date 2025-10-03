@@ -10,7 +10,7 @@ export enum AppointmentStatus {
   CANCELLED = 'cancelled',
 }
 
-@Entity()
+@Entity({ orderBy: { id: 'ASC' } })
 export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;

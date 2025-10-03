@@ -97,6 +97,7 @@ export class PersonnelService {
       // .andWhere('workingTimeCompanySetting.enabled = :enabled', {
       //   enabled: true,
       // })
+      .orderBy('workingTime.workingTimeCompanySettingId', 'ASC')
       .getOne();
 
     if (personnel) {

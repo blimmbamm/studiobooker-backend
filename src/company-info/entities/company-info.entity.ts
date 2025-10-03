@@ -1,7 +1,7 @@
 import { Company } from 'src/company/entities/company.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ orderBy: { id: 'ASC' } })
 export class CompanyInfo {
   @PrimaryGeneratedColumn()
   id: number;

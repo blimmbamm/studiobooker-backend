@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity({ orderBy: { id: 'ASC' } })
 export class Company {
   @PrimaryGeneratedColumn()
   id: number;

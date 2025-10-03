@@ -17,6 +17,7 @@ export class CompanyController {
         companyInfo: true,
         workingTimeSettings: true,
       },
+      { workingTimeSettings: { id: 'ASC' } },
     );
   }
 }

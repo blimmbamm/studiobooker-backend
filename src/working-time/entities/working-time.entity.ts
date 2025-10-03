@@ -4,7 +4,7 @@ import { Personnel } from 'src/personnel/entities/personnel.entity';
 import { WorkingTimeCompanySetting } from 'src/working-time-company-settings/entities/working-time-company-setting.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ orderBy: { id: 'ASC' } })
 export class WorkingTime {
   @PrimaryGeneratedColumn()
   id: number;

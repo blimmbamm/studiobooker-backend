@@ -45,6 +45,7 @@ export class PublicService {
 
     const personnel = await this.personnelService.findAllWithFilters(company, {
       serviceId,
+      activated: true,
     });
 
     return personnel.map(({ id, name }) => ({ id, name }));

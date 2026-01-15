@@ -15,7 +15,7 @@ export class Service {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   title: string;
 
   @Column({ nullable: true })

@@ -142,9 +142,7 @@ export class AppointmentService {
           );
 
           if (!overlaps) {
-            // const isoKey = slot.toISOString();
-            const isoKey = dayjs(slot).tz(timezone).format('YYYY-MM-DD HH:mm');
-
+            const isoKey = slot.toISOString();
             if (!slotMap.has(isoKey)) {
               slotMap.set(isoKey, new Set());
             }
@@ -154,25 +152,13 @@ export class AppointmentService {
       }
 
       const slots: AppointmentSlot[] = Array.from(slotMap.entries()).map(
-        // ([iso, staffIds]) => ({
-        //   date: new Date(iso),
-        //   staffIds: Array.from(staffIds),
-        // }),
-
-        ([key, staffIds]) => ({
-          date: dayjs.tz(key, 'YYYY-MM-DD HH:mm', timezone).toDate(),
+        ([iso, staffIds]) => ({
+          date: new Date(iso),
           staffIds: Array.from(staffIds),
         }),
       );
 
-      // results.push({ day, slots });
-
-      const dayTz = dayjs(date).tz(timezone).startOf('day');
-
-      results.push({
-        day: dayTz,
-        slots,
-      });
+      results.push({ day, slots });
     }
 
     return results;

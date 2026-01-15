@@ -8,6 +8,7 @@ import { Between, FindOptionsWhere, In, Not, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
 import * as isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import * as timezone from 'dayjs/plugin/timezone';
+import * as utc from 'dayjs/plugin/utc';
 
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Company } from 'src/company/entities/company.entity';
@@ -28,6 +29,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { EmailService } from '../email/email.service';
 import { CompanyInfoService } from '../company-info/company-info.service';
 
+dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(timezone);
 
@@ -113,12 +115,12 @@ export class AppointmentService {
         const [startHour, startMinutes] = workingTime.start.split(':');
         const [endHour, endMinutes] = workingTime.end.split(':');
         const dayStart = dayjs(date)
-          .set('hours', +startHour)
-          .set('minutes', +startMinutes)
+          .add(+startHour, 'hours')
+          .add(+startMinutes, 'minutes')
           .toDate();
         const dayEnd = dayjs(date)
-          .set('hours', +endHour)
-          .set('minutes', +endMinutes)
+          .add(+endHour, 'hours')
+          .add(+endMinutes, 'minutes')
           .toDate();
 
         const appointmentRanges =
